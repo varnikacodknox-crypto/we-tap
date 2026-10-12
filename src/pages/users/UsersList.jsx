@@ -74,10 +74,10 @@ export const UsersList = () => {
           </select>
         </div>
 
-        <button className="wetap-add-btn">
+        {/* <button className="wetap-add-btn">
           <UserPlus size={16} />
           <span>Add User</span>
-        </button>
+        </button> */}
       </div>
 
       {/* Table Container */}
@@ -130,7 +130,7 @@ export const UsersList = () => {
         </table>
 
         {filteredUsers.length === 0 && (
-          <EmptyState message="No Records Found" />
+          <EmptyState />
         )}
       </div>
     </div>

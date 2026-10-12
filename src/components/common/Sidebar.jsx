@@ -15,9 +15,8 @@ import placeActive from '../../assets/images/place_cards.svg';
 import placeInactive from '../../assets/images/place_card.svg';
 import settingActive from '../../assets/images/setting_white.svg';
 import settingInactive from '../../assets/images/setting_black.svg';
-import chevronIcon from '../../assets/images/chevron_sidebar.svg';
 
-export const Sidebar = ({ isCollapsed, toggleSidebar }) => {
+export const Sidebar = ({ isCollapsed }) => {
   const location = useLocation();
 
   const navItems = [
@@ -87,29 +86,13 @@ export const Sidebar = ({ isCollapsed, toggleSidebar }) => {
                       className="wetap-nav-icon"
                     />
                   </span>
-                  {!isCollapsed && <span className="wetap-nav-label">{item.name}</span>}
+                  <span className="wetap-nav-label">{item.name}</span>
                 </NavLink>
               </li>
             );
           })}
         </ul>
       </nav>
-
-      {/* Collapse Toggle Button at Bottom Left */}
-      <div className="wetap-sidebar-footer">
-        <button
-          onClick={toggleSidebar}
-          className="wetap-sidebar-toggle-btn"
-          aria-label="Toggle Sidebar"
-          title={isCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
-        >
-          <img
-            src={chevronIcon}
-            alt="Toggle"
-            className={`wetap-chevron-icon ${isCollapsed ? 'rotate-180' : ''}`}
-          />
-        </button>
-      </div>
     </aside>
   );
 };

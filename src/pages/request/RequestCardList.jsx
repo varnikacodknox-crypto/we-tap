@@ -53,7 +53,7 @@ export const RequestCardList = () => {
 
       {/* TAB 1: Requested Cards List */}
       {activeTab === 'requested' && (
-        <>
+        <div key="requested" className="wetap-page-transition">
           {/* Search and Filter Bar */}
           <div className="wetap-filter-bar">
             <div className="wetap-filter-inputs">
@@ -109,58 +109,60 @@ export const RequestCardList = () => {
             </table>
 
             {filteredRequests.length === 0 && (
-              <EmptyState message="No Records Found" />
+              <EmptyState />
             )}
           </div>
-        </>
+        </div>
       )}
 
       {/* TAB 2: Request Card Access Form */}
       {activeTab === 'form' && (
-        <div className="wetap-request-form-wrapper">
-          <div className="wetap-request-card-box">
-            <h3 className="wetap-request-box-title">Request Card Access</h3>
-            <p className="wetap-request-box-subtitle">
-              Request a card access from the Wetap Admin
-            </p>
+        <div key="form" className="wetap-page-transition">
+          <div className="wetap-request-form-wrapper">
+            <div className="wetap-request-card-box">
+              <h3 className="wetap-request-box-title">Request Card Access</h3>
+              <p className="wetap-request-box-subtitle">
+                Request a card access from the Wetap Admin
+              </p>
 
-            {submitted && (
-              <div className="wetap-alert-success text-center mb-4">
-                Card access request submitted successfully!
-              </div>
-            )}
+              {submitted && (
+                <div className="wetap-alert-success text-center mb-4">
+                  Card access request submitted successfully!
+                </div>
+              )}
 
-            <form onSubmit={handleFormSubmit} className="wetap-request-form">
-              <div className="wetap-form-group">
-                <label className="wetap-form-label">Card ID</label>
-                <input
-                  type="text"
-                  placeholder="Enter Card ID"
-                  value={cardId}
-                  onChange={(e) => setCardId(e.target.value)}
-                  className="wetap-form-input"
-                />
-              </div>
+              <form onSubmit={handleFormSubmit} className="wetap-request-form">
+                <div className="wetap-form-group">
+                  <label className="wetap-form-label">Card ID</label>
+                  <input
+                    type="text"
+                    placeholder="Enter Card ID"
+                    value={cardId}
+                    onChange={(e) => setCardId(e.target.value)}
+                    className="wetap-form-input"
+                  />
+                </div>
 
-              <div className="wetap-or-divider">or</div>
+                <div className="wetap-or-divider">or</div>
 
-              <div className="wetap-form-group">
-                <label className="wetap-form-label">Email</label>
-                <input
-                  type="email"
-                  placeholder="Enter Registered Email Address"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="wetap-form-input"
-                />
-              </div>
+                <div className="wetap-form-group">
+                  <label className="wetap-form-label">Email</label>
+                  <input
+                    type="email"
+                    placeholder="Enter Registered Email Address"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="wetap-form-input"
+                  />
+                </div>
 
-              <div className="wetap-form-submit-wrapper mt-4">
-                <button type="submit" className="wetap-gradient-btn px-8">
-                  Request Card Access
-                </button>
-              </div>
-            </form>
+                <div className="wetap-form-submit-wrapper mt-4">
+                  <button type="submit" className="wetap-gradient-btn px-8">
+                    Request Card Access
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
         </div>
       )}

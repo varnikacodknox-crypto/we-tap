@@ -63,7 +63,6 @@ export const Dashboard = () => {
           colorVariant="peach"
         />
       </div>
-
       {/* Analytics Chart Container */}
       <div className="wetap-chart-card">
         <div className="wetap-chart-header">
@@ -192,7 +191,7 @@ export const Dashboard = () => {
           </div>
         </div>
       </div>
-    </div>
+    </div >
   );
 };
 

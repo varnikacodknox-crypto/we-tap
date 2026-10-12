@@ -74,7 +74,7 @@ export const CardsList = () => {
               <th>Card Id</th>
               <th>Status</th>
               <th>Create Date</th>
-              <th>Action</th>
+              {/* <th>Action</th> */}
             </tr>
           </thead>
           <tbody>
@@ -90,7 +90,7 @@ export const CardsList = () => {
                     </span>
                   </td>
                   <td>2026-10-08</td>
-                  <td>
+                  {/* <td>
                     <div className="wetap-action-buttons">
                       <button className="wetap-action-icon-btn view" title="Preview Card QR">
                         <QrCode size={16} />
@@ -99,7 +99,7 @@ export const CardsList = () => {
                         <Edit size={16} />
                       </button>
                     </div>
-                  </td>
+                  </td> */}
                 </tr>
               ))
             ) : null}
