@@ -1,7 +1,7 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap');
 
 :root {
-  --font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  --font-family: 'Poppins', sans-serif;
   --bg-main: #f8fafc;
   --sidebar-width: 230px;
   --sidebar-collapsed-width: 0px;
@@ -28,6 +28,13 @@ body {
   color: var(--color-text-main);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+button,
+input,
+textarea,
+select {
+  font-family: var(--font-family);
 }
 
 /* ==========================================================================
@@ -772,7 +779,7 @@ body {
 .wetap-data-table th {
   padding: 16px 20px;
   font-size: 13px;
-  font-weight: 500;
+  font-weight: 700;
   color: gray;
   border-bottom: 1px solid #dee2e6 !important;
   background: #ffffff;
@@ -781,7 +788,7 @@ body {
 .wetap-data-table td {
   padding: 16px 20px;
   font-size: 14px;
-  color: #334155;
+  color: #212529;
   border-bottom: 1px solid #f8fafc;
 }
 
@@ -796,20 +803,27 @@ body {
 .wetap-status-badge.active,
 .wetap-status-badge.approved,
 .wetap-status-badge.shipped {
-  background: #ecfdf5;
-  color: #10b981;
+  background: #F0FAE6;
+  color: #95C55F;
+  font-size:14px;
+      border: 1px solid #95C55F;
+
 }
 
 .wetap-status-badge.inactive,
 .wetap-status-badge.rejected {
   background: #fef2f2;
   color: #ef4444;
+  font-size:14px;
+      border: 1px solid #ef4444;
 }
 
 .wetap-status-badge.pending,
 .wetap-status-badge.maintenance {
   background: #fffbe6;
   color: #d97706;
+  font-size:14px;
+      border: 1px solid #d97706;
 }
 
 .wetap-action-buttons {
@@ -818,10 +832,11 @@ body {
 }
 
 .wetap-action-icon-btn {
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   border-radius: 6px;
-  border: 1px solid #e2e8f0;
+  border:none;
+  /* border: 1px solid #e2e8f0; */
   background: #ffffff;
   display: flex;
   align-items: center;
@@ -836,6 +851,16 @@ body {
   color: #0f172a;
 }
 
+.wetap-user-edit-icon {
+  width: 20px;
+  height: 20px;
+}
+
+.wetap-user-status-icon {
+  width: 20px;
+  height: 20px;
+}
+
 .wetap-action-icon-btn.approve:hover {
   background: #ecfdf5;
   color: #10b981;
@@ -846,6 +871,22 @@ body {
   background: #fef2f2;
   color: #ef4444;
   border-color: #fecaca;
+}
+
+.wetap-loading-indicator {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgb(255 255 255 / 65%);
+}
+
+.wetap-loading-indicator img {
+  width: 60px;
+  height: 60px;
+  object-fit: contain;
 }
 
 /* Empty State */
@@ -959,6 +1000,379 @@ body {
   font-size: 14px;
   color: #334155;
   cursor: pointer;
+}
+
+.wetap-user-status-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgb(0 0 0 / 48%);
+}
+
+.wetap-user-status-dialog {
+  width: min(100%, 445px);
+  overflow: hidden;
+  border-radius: 10px;
+  background: #ffffff;
+  box-shadow: 0 12px 40px rgb(15 23 42 / 20%);
+}
+
+.wetap-user-status-dialog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.wetap-user-status-dialog-header h2 {
+  margin: 0;
+  color: #1f2937;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.wetap-user-status-close-icon {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  border: 0;
+  background: transparent;
+  color: #858585;
+  cursor: pointer;
+}
+
+.wetap-user-status-dialog-body {
+  display: grid;
+  gap: 28px;
+  padding: 18px 28px 38px;
+}
+
+.wetap-user-existing-status,
+.wetap-user-status-field {
+  display: grid;
+  gap: 6px;
+}
+
+.wetap-user-existing-status span,
+.wetap-user-status-field > span {
+  color: #6b7280;
+  font-size: 12px;
+}
+
+.wetap-user-existing-status strong {
+  padding-bottom: 7px;
+  border-bottom: 2px dotted #d1d5db;
+  color: #6b7280;
+  font-size: 14px;
+  font-weight: 400;
+  text-transform: lowercase;
+}
+
+.wetap-user-status-field > span {
+  color: #ec4899;
+}
+
+.wetap-user-status-field > span b {
+  color: #ef4444;
+}
+
+.wetap-user-status-field select {
+  width: 100%;
+  padding: 3px 0 8px;
+  border: 0;
+  border-bottom: 2px solid #ec4899;
+  border-radius: 0;
+  outline: none;
+  background: #ffffff;
+  color: #374151;
+  font-size: 14px;
+}
+
+.wetap-user-status-error {
+  margin: 0;
+  color: #b91c1c;
+  font-size: 13px;
+}
+
+.wetap-user-status-dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 16px 18px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.wetap-user-status-dialog-footer button {
+  min-height: 36px;
+  padding: 0 14px;
+  border-radius: 5px;
+  background: #ffffff;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.wetap-user-status-save {
+  border: 1px solid #4caf50;
+  color: #4caf50;
+}
+
+.wetap-user-status-close {
+  border: 1px solid #ef4444;
+  color: #ef4444;
+}
+
+.wetap-user-status-dialog-footer button:disabled,
+.wetap-user-status-close-icon:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.wetap-nonsubscription-btn {
+  min-height: 28px;
+  padding: 0 9px;
+  border: 0;
+  border-radius: 16px;
+  background: linear-gradient(110deg, #56b6e8, #c54fc7);
+  color: #ffffff;
+  font-size: 10px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.wetap-nonsubscription-btn:hover {
+  filter: brightness(1.06);
+}
+
+.wetap-user-cards-icon {
+  display: inline-grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  border-radius: 50%;
+}
+
+.wetap-user-cards-icon img {
+  width: 26px;
+  height: 26px;
+  object-fit: contain;
+}
+
+.wetap-subscription-dialog {
+  width: min(100%, 442px);
+}
+
+.wetap-subscription-dialog .wetap-user-status-dialog-header {
+  padding: 17px 20px;
+}
+
+.wetap-subscription-dialog-body {
+  display: grid;
+  gap: 28px;
+  padding: 28px 27px 38px;
+}
+
+.wetap-subscription-cancellation-dialog {
+  width: min(100%, 680px);
+  padding: 30px 20px;
+  border-radius: 8px;
+  background: #ffffff;
+  text-align: center;
+  box-shadow: 0 12px 40px rgb(15 23 42 / 20%);
+}
+
+.wetap-subscription-cancellation-dialog h2 {
+  margin: 0;
+  color: #5b5b5b;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.wetap-subscription-cancellation-dialog p {
+  margin: 30px 0 32px;
+  color: #5b5b5b;
+  font-size: 16px;
+    font-weight: 400;
+}
+
+.wetap-subscription-cancellation-actions {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+
+.wetap-subscription-cancellation-actions button {
+  min-height: 54px;
+  padding: 0 26px;
+  border: 0;
+  border-radius: 6px;
+  color: #ffffff;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.wetap-subscription-cancellation-confirm {
+  background: #174da3;
+}
+
+.wetap-subscription-cancellation-dismiss {
+  background: #e52d32;
+}
+
+.wetap-subscription-cancellation-actions button:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.wetap-subscription-cancellation-dialog .wetap-user-status-error {
+  margin: 16px 0 0;
+  color: #b91c1c;
+  font-size: 13px;
+}
+
+.wetap-subscription-date-field {
+  display: grid;
+  gap: 8px;
+  color: #6b7280;
+  font-size: 13px;
+}
+
+@media (max-width: 600px) {
+  .wetap-subscription-cancellation-dialog {
+    padding: 30px 20px;
+  }
+
+  .wetap-subscription-cancellation-dialog p {
+    margin: 28px 0;
+    font-size: 21px;
+  }
+
+  .wetap-subscription-cancellation-actions button {
+    min-height: 52px;
+    padding: 0 12px;
+    font-size: 16px;
+  }
+}
+
+.wetap-subscription-date-field input {
+  width: 100%;
+  min-height: 32px;
+  padding: 2px 0 7px;
+  border: 0;
+  border-bottom: 1px solid #bfc3c9;
+  border-radius: 0;
+  outline: none;
+  background: #ffffff;
+  color: #374151;
+  font: inherit;
+}
+
+.wetap-subscription-date-field input:focus {
+  border-bottom: 2px solid #ec4899;
+}
+
+.wetap-user-details-editor {
+  position: relative;
+}
+
+.wetap-user-details-back {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  margin-bottom: 16px;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: #ffffff;
+  color: #1f2937;
+  cursor: pointer;
+}
+
+.wetap-user-details-back:hover {
+  background: #f1f5f9;
+}
+
+.wetap-user-details-card {
+  overflow: hidden;
+  border: 1px solid #d9d9d9;
+  border-radius: 4px;
+  background: #ffffff;
+}
+
+.wetap-user-details-card h2 {
+  margin: 0;
+  padding: 14px 18px;
+  border-bottom: 1px solid #d9d9d9;
+  background: #f7f7f7;
+  color: #222222;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.wetap-user-details-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+  padding: 20px 30px;
+}
+
+.wetap-user-details-field {
+  display: grid;
+  gap: 8px;
+  color: #1f2937;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.wetap-user-details-field input {
+  width: 100%;
+  height: 42px;
+  padding: 0 16px;
+  border: 1px solid #e5e7eb;
+  border-radius: 7px;
+  background: #eeeeee;
+  color: #374151;
+  font: inherit;
+  font-weight: 400;
+}
+
+.wetap-user-details-field input:focus {
+  border-color: #8da9fc;
+  outline: 2px solid rgb(141 169 252 / 20%);
+  background: #ffffff;
+}
+
+.wetap-user-details-error {
+  margin: 0 30px;
+  color: #b91c1c;
+  font-size: 13px;
+}
+
+.wetap-user-details-submit {
+  display: flex;
+  justify-content: center;
+  padding: 14px 24px 36px;
+}
+
+.wetap-user-details-submit .wetap-gradient-btn {
+  height: 38px;
+  min-width: 96px;
+  padding: 0 12px;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0;
+}
+
+.wetap-user-details-submit .wetap-gradient-btn:disabled {
+  cursor: wait;
+  opacity: 0.7;
 }
 
 /* ==========================================================================
@@ -1277,6 +1691,7 @@ body {
   .wetap-data-table td {
     padding: 12px 14px;
     font-size: 13px;
+        font-weight: 500;
     white-space: nowrap;
   }
 
@@ -1361,4 +1776,67 @@ body {
     width: 100%;
     padding: 0 16px;
   }
+}
+/* Toast alerts */
+.wetap-toast-container {
+  position: fixed;
+  top: 28px;
+  right: 16px;
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: calc(100vw - 32px);
+  pointer-events: none;
+}
+
+.wetap-toast {
+  width: 320px;
+  max-width: 100%;
+  padding: 12px 14px;
+  border-radius: 4px;
+  background: #4b5056;
+  color: #ffffff;
+  font-family: var(--font-family);
+  font-size: 13px;
+  line-height: 1.4;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+  cursor: pointer;
+  pointer-events: auto;
+  animation: wetap-toast-in 0.25s ease-out;
+}
+
+@media (min-width: 768px) {
+  .wetap-toast {
+    width: 400px;
+    padding: 16px 18px;
+    font-size: 15px;
+  }
+}
+
+@keyframes wetap-toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Change Password stays disabled until the form is valid */
+.wetap-change-password-btn:disabled,
+.wetap-change-password-btn:disabled:hover {
+  background: #e5e7eb;
+  color: #9ca3af;
+  box-shadow: none;
+  transform: none;
+  cursor: not-allowed;
+}
+
+.wetap-password-mismatch {
+  margin: 6px 0 0;
+  color: #ef4444;
+  font-size: 12px;
 }

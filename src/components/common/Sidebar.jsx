@@ -1,4 +1,4 @@
-import React from 'react';
+import { useEffect } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 
 // Import local image assets
@@ -57,6 +57,17 @@ export const Sidebar = ({ isCollapsed }) => {
       inactiveIcon: settingInactive,
     },
   ];
+
+  const activeIndex = navItems.findIndex((item) => location.pathname.startsWith(item.path));
+
+  useEffect(() => {
+    if (activeIndex < 0) return;
+    try {
+      localStorage.setItem('activeIndex', String(activeIndex));
+    } catch {
+      // Storage unavailable; the active item still follows the URL.
+    }
+  }, [activeIndex]);
 
   return (
     <aside className={`wetap-sidebar ${isCollapsed ? 'collapsed' : ''}`}>

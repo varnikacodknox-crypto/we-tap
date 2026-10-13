@@ -1,12 +1,25 @@
-import React, { useState } from 'react';
+import { useEffect, useState } from 'react';
 import EmptyState from '../../components/common/EmptyState';
-import { mockPlacedCardsTable } from '../../data/mockData';
+import LoadingIndicator from '../../components/common/LoadingIndicator';
+import { createOrder, getOrders } from '../../api/orders';
+import { useAuth } from '../../context/useAuth';
+import { useToast } from '../../context/useToast';
 
 export const PlaceCardList = () => {
   const [activeTab, setActiveTab] = useState('placed'); // 'placed' | 'new'
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
-  const [showEmptyState, setShowEmptyState] = useState(true); // Default empty state matching Screenshot 1
+  const [ordersResult, setOrdersResult] = useState(null);
+  const [ordersError, setOrdersError] = useState(null);
+  const [ordersRefreshKey, setOrdersRefreshKey] = useState(0);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formSuccess, setFormSuccess] = useState('');
+  const { accessToken } = useAuth();
+  const showToast = useToast();
+  const orders = ordersResult?.token === accessToken ? ordersResult.data : null;
+  const ordersErrorMessage =
+    ordersError?.token === accessToken ? ordersError.message : '';
+  const isLoadingOrders = activeTab === 'placed' && !orders && !ordersErrorMessage;
 
   // Form states for "Place A New Card"
   const [formData, setFormData] = useState({
@@ -16,18 +29,43 @@ export const PlaceCardList = () => {
     cardType: 'Standard',
     deliveryAddress: '',
   });
-  const [submitted, setSubmitted] = useState(false);
+  useEffect(() => {
+    const controller = new AbortController();
+
+    getOrders(accessToken, { limit: 5, offset: 0 }, controller.signal)
+      .then((data) => {
+        setOrdersResult({ token: accessToken, data });
+        setOrdersError(null);
+      })
+      .catch((error) => {
+        if (!controller.signal.aborted) {
+          setOrdersError({ token: accessToken, message: error.message });
+          showToast(error.message);
+        }
+      });
+
+    return () => controller.abort();
+  }, [accessToken, ordersRefreshKey, showToast]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleFormSubmit = (e) => {
+  const handleFormSubmit = async (e) => {
     e.preventDefault();
-    setSubmitted(true);
-    setTimeout(() => {
-      setSubmitted(false);
+    setFormSuccess('');
+    setIsSubmitting(true);
+
+    try {
+      await createOrder(accessToken, {
+        name: formData.name,
+        email: formData.email,
+        mobile: formData.mobile,
+        cardType: formData.cardType,
+        address: formData.deliveryAddress,
+      });
+      setFormSuccess('Card order placed successfully!');
       setFormData({
         name: '',
         email: '',
@@ -35,23 +73,28 @@ export const PlaceCardList = () => {
         cardType: 'Standard',
         deliveryAddress: '',
       });
-    }, 3000);
+      setOrdersError(null);
+      setActiveTab('placed');
+      setOrdersRefreshKey((key) => key + 1);
+    } catch (error) {
+      showToast(error.message || 'Unable to place the card order. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  const filteredCards = showEmptyState
-    ? []
-    : (mockPlacedCardsTable || []).filter((card) => {
-      const matchesSearch =
-        card.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        card.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        card.mobile.includes(searchTerm);
+  const filteredCards = (orders?.orderList || []).filter((card) => {
+    const matchesSearch =
+      card.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      card.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      card.mobile.includes(searchTerm);
 
-      const matchesStatus =
-        statusFilter === 'All' ||
-        card.status.toLowerCase() === statusFilter.toLowerCase();
+    const matchesStatus =
+      statusFilter === 'All' ||
+      card.status.toLowerCase() === statusFilter.toLowerCase();
 
-      return matchesSearch && matchesStatus;
-    });
+    return matchesSearch && matchesStatus;
+  });
 
   return (
     <div className="wetap-page-container">
@@ -65,7 +108,10 @@ export const PlaceCardList = () => {
         </button>
         <button
           className={`wetap-request-tab ${activeTab === 'new' ? 'active' : ''}`}
-          onClick={() => setActiveTab('new')}
+          onClick={() => {
+            setFormSuccess('');
+            setActiveTab('new');
+          }}
         >
           Place New Card
         </button>
@@ -74,6 +120,11 @@ export const PlaceCardList = () => {
       {/* TAB 1: Placed Cards */}
       {activeTab === 'placed' && (
         <div key="placed" className="wetap-page-transition">
+          {formSuccess && (
+            <div className="wetap-alert-success text-center mb-4 w-full">
+              {formSuccess}
+            </div>
+          )}
           {/* Search and Filter Bar */}
           <div className="wetap-filter-bar">
             <div className="wetap-filter-inputs">
@@ -92,8 +143,7 @@ export const PlaceCardList = () => {
               >
                 <option value="All">All</option>
                 <option value="Active">Active</option>
-                <option value="Pending">Pending</option>
-                <option value="Delivered">Delivered</option>
+                <option value="Inactive">Inactive</option>
               </select>
             </div>
           </div>
@@ -113,15 +163,15 @@ export const PlaceCardList = () => {
                 </tr>
               </thead>
               <tbody>
-                {filteredCards.length > 0 ? (
+                {!isLoadingOrders && !ordersErrorMessage && filteredCards.length > 0 ? (
                   filteredCards.map((card) => (
-                    <tr key={card.id}>
+                    <tr key={card.orderId}>
                       <td className="font-semibold">{card.name}</td>
                       <td>{card.email}</td>
                       <td>{card.mobile}</td>
-                      <td>{card.cardType}</td>
+                      <td>{card.cardType.charAt(0).toUpperCase() + card.cardType.slice(1)}</td>
                       <td>{card.address}</td>
-                      <td>{card.date}</td>
+                      <td>{card.creationDate?.slice(0, 10) || ''}</td>
                       <td>
                         <span className={`wetap-status-badge ${card.status.toLowerCase()}`}>
                           {card.status}
@@ -133,7 +183,10 @@ export const PlaceCardList = () => {
               </tbody>
             </table>
 
-            {filteredCards.length === 0 && (
+            {isLoadingOrders && (
+              <LoadingIndicator label="Loading placed cards" />
+            )}
+            {!isLoadingOrders && !ordersErrorMessage && filteredCards.length === 0 && (
               <EmptyState />
             )}
           </div>
@@ -147,12 +200,6 @@ export const PlaceCardList = () => {
             <div className="wetap-request-card-box">
               <h3 className="wetap-request-box-title mb-6">Place A New Card</h3>
 
-              {submitted && (
-                <div className="wetap-alert-success text-center mb-4 w-full">
-                  New card request submitted successfully!
-                </div>
-              )}
-
               <form onSubmit={handleFormSubmit} className="wetap-request-form">
                 <div className="wetap-form-group">
                   <label className="wetap-form-label">Name</label>
@@ -161,7 +208,9 @@ export const PlaceCardList = () => {
                     name="name"
                     placeholder="Enter Name"
                     value={formData.name}
-                    onChange={handleInputChange}
+                    onChange={(e) => {
+                      handleInputChange(e);
+                    }}
                     className="wetap-form-input"
                     required
                   />
@@ -174,7 +223,9 @@ export const PlaceCardList = () => {
                     name="email"
                     placeholder="Enter Email Address"
                     value={formData.email}
-                    onChange={handleInputChange}
+                    onChange={(e) => {
+                      handleInputChange(e);
+                    }}
                     className="wetap-form-input"
                     required
                   />
@@ -187,7 +238,9 @@ export const PlaceCardList = () => {
                     name="mobile"
                     placeholder="Enter Mobile Number"
                     value={formData.mobile}
-                    onChange={handleInputChange}
+                    onChange={(e) => {
+                      handleInputChange(e);
+                    }}
                     className="wetap-form-input"
                     required
                   />
@@ -198,13 +251,14 @@ export const PlaceCardList = () => {
                   <select
                     name="cardType"
                     value={formData.cardType}
-                    onChange={handleInputChange}
+                    onChange={(e) => {
+                      handleInputChange(e);
+                    }}
                     className="wetap-form-input wetap-form-select"
                   >
                     <option value="Standard">Standard</option>
-                    <option value="Custom Metal Card">Custom Metal Card</option>
-                    <option value="Executive Matte Black">Executive Matte Black</option>
-                    <option value="Eco Series Card">Eco Series Card</option>
+                    <option value="pvcCustom">Pvc Custom</option>
+                    <option value="metalCustom">Metal Custom</option>
                   </select>
                 </div>
 
@@ -215,14 +269,16 @@ export const PlaceCardList = () => {
                     name="deliveryAddress"
                     placeholder="Enter Delivery Address"
                     value={formData.deliveryAddress}
-                    onChange={handleInputChange}
+                    onChange={(e) => {
+                      handleInputChange(e);
+                    }}
                     className="wetap-form-input"
                   />
                 </div>
 
                 <div className="wetap-form-submit-wrapper mt-6">
-                  <button type="submit" className="wetap-gradient-btn px-8">
-                    Request New Card
+                  <button type="submit" className="wetap-gradient-btn px-8" disabled={isSubmitting}>
+                    {isSubmitting ? 'PLACING ORDER...' : 'Request New Card'}
                   </button>
                 </div>
               </form>
@@ -235,4 +291,3 @@ export const PlaceCardList = () => {
 };
 
 export default PlaceCardList;
-

@@ -71,10 +71,8 @@ export const RequestCardList = () => {
                 className="wetap-dropdown-filter"
               >
                 <option value="All">All</option>
-                <option value="Pending">Pending</option>
-                <option value="Approved">Approved</option>
-                <option value="Shipped">Shipped</option>
-                <option value="Rejected">Rejected</option>
+                <option value="Active">Active</option>
+                <option value="Inactive">Inactive</option>
               </select>
             </div>
           </div>

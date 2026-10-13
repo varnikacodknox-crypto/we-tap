@@ -1,64 +1,105 @@
-import React, { useState } from 'react';
+import { useEffect, useState } from 'react';
 import StatCard from '../../components/common/StatCard';
+import LoadingIndicator from '../../components/common/LoadingIndicator';
 import userIcon from '../../assets/images/user-black.svg';
 import cardIcon from '../../assets/images/cards_dahsboard.svg';
 import tapIcon from '../../assets/images/taps.svg';
-import { mockStats, mockChartData } from '../../data/mockData';
+import { getDashboard, getDashboardChart } from '../../api/dashboard';
+import { useAuth } from '../../context/useAuth';
+import { useToast } from '../../context/useToast';
 
 export const Dashboard = () => {
   const [activeTab, setActiveTab] = useState('Cards'); // 'Users' | 'Cards' | 'Taps'
   const [period, setPeriod] = useState('Daily');
   const [limit, setLimit] = useState('10');
-  const [showZeroData, setShowZeroData] = useState(true); // Default to match screenshot 3 (0 count)
+  const [statsResult, setStatsResult] = useState(null);
+  const [statsError, setStatsError] = useState(null);
+  const [chartResult, setChartResult] = useState(null);
+  const [chartError, setChartError] = useState(null);
+  const { accessToken } = useAuth();
+  const showToast = useToast();
+  const chartQueryKey = JSON.stringify([accessToken, activeTab, period, limit]);
+  const stats = statsResult?.token === accessToken ? statsResult.data : null;
+  const statsErrorMessage =
+    statsError?.token === accessToken ? statsError.message : '';
+  const chartPoints =
+    chartResult?.queryKey === chartQueryKey ? chartResult.points : [];
+  const isLoadingStats = stats === null && !statsErrorMessage;
+  const isLoadingChart =
+    chartResult?.queryKey !== chartQueryKey && chartError?.queryKey !== chartQueryKey;
 
-  const stats = showZeroData
-    ? { totalUsers: 0, totalCards: 0, totalTaps: 0 }
-    : mockStats;
+  useEffect(() => {
+    const controller = new AbortController();
 
-  const currentChartPoints = showZeroData
-    ? mockChartData.daily.map(d => ({ ...d, users: 0, cards: 0, taps: 0 }))
-    : mockChartData[period.toLowerCase()] || mockChartData.daily;
+    getDashboard(accessToken, controller.signal)
+      .then((data) => {
+        setStatsResult({ token: accessToken, data });
+        setStatsError(null);
+      })
+      .catch((error) => {
+        if (!controller.signal.aborted) {
+          setStatsError({ token: accessToken, message: error.message });
+          showToast(error.message);
+        }
+      });
 
-  const dates = currentChartPoints.map(d => d.date);
-  const dataValues = currentChartPoints.map(d => {
-    if (activeTab === 'Users') return d.users;
-    if (activeTab === 'Cards') return d.cards;
-    return d.taps;
-  });
+    return () => controller.abort();
+  }, [accessToken, showToast]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    getDashboardChart(
+      accessToken,
+      activeTab,
+      { type: period.toLowerCase(), limit, text: 'all' },
+      controller.signal
+    )
+      .then((data) => {
+        setChartResult({
+          queryKey: chartQueryKey,
+          points: data[0]?.series || [],
+        });
+        setChartError(null);
+      })
+      .catch((error) => {
+        if (!controller.signal.aborted) {
+          setChartError({ queryKey: chartQueryKey, message: error.message });
+          showToast(error.message);
+        }
+      });
+
+    return () => controller.abort();
+  }, [accessToken, activeTab, chartQueryKey, limit, period, showToast]);
+
+  const dates = chartPoints.map((point) => point.name);
+  const dataValues = chartPoints.map((point) => point.value);
 
   const maxValue = Math.max(...dataValues, 10);
 
+  // Show at most ~10 x-axis labels so dates don't overlap at higher limits.
+  const MAX_X_LABELS = 10;
+  const labelStep = Math.max(1, Math.ceil(dates.length / MAX_X_LABELS));
+
   return (
     <div className="wetap-dashboard-page">
-      {/* Demo State Switcher Toggle */}
-      {/* <div className="wetap-demo-toggle-bar">
-        <label className="wetap-toggle-label">
-          <input
-            type="checkbox"
-            checked={!showZeroData}
-            onChange={(e) => setShowZeroData(!e.target.checked)}
-          />
-          <span>Show Live Demo Data (Toggle between 0 state & populated analytics)</span>
-        </label>
-      </div> */}
-
       {/* Stat Cards Row */}
       <div className="wetap-stats-grid">
         <StatCard
           title="Total Users"
-          value={stats.totalUsers}
+          value={isLoadingStats ? '—' : stats?.totalActiveUsers ?? '—'}
           icon={userIcon}
           colorVariant="pink"
         />
         <StatCard
           title="Total Cards"
-          value={stats.totalCards}
+          value={isLoadingStats ? '—' : stats?.totalCards ?? '—'}
           icon={cardIcon}
           colorVariant="blue"
         />
         <StatCard
           title="Total Taps"
-          value={stats.totalTaps}
+          value={isLoadingStats ? '—' : stats?.totalTaps ?? '—'}
           icon={tapIcon}
           colorVariant="peach"
         />
@@ -105,6 +146,7 @@ export const Dashboard = () => {
 
         {/* SVG Interactive Dynamic Chart */}
         <div className="wetap-chart-body">
+          {isLoadingChart && <LoadingIndicator label="Loading chart" />}
           <div className="wetap-svg-chart-container">
             <svg viewBox="0 0 900 320" className="wetap-analytics-svg">
               <defs>
@@ -135,7 +177,7 @@ export const Dashboard = () => {
               <text x="35" y="244" fontSize="12" fill="#777" textAnchor="end">0</text>
 
               {/* Data Trend Line */}
-              {(() => {
+              {!isLoadingChart && chartPoints.length > 0 && (() => {
                 const points = dataValues.map((val, idx) => {
                   const x = 70 + (idx * (780 / (dates.length - 1 || 1)));
                   const y = 240 - (val / maxValue) * 180;
@@ -152,6 +194,7 @@ export const Dashboard = () => {
                       const [px, py] = pt.split(',');
                       return (
                         <g key={idx} className="chart-point-group">
+                          <title>{`${dates[idx]}: ${dataValues[idx]}`}</title>
                           <circle cx={px} cy={py} r="4" fill="#d946ef" stroke="#fff" strokeWidth="2" />
                           {dataValues[idx] > 0 && (
                             <text x={px} y={parseFloat(py) - 10} fontSize="11" fill="#444" textAnchor="middle" fontWeight="bold">
@@ -167,6 +210,7 @@ export const Dashboard = () => {
 
               {/* X Axis Labels */}
               {dates.map((date, idx) => {
+                if (idx % labelStep !== 0) return null;
                 const x = 70 + (idx * (780 / (dates.length - 1 || 1)));
                 return (
                   <text

@@ -1,19 +1,29 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../context/useAuth';
+import { useToast } from '../../context/useToast';
 import visibilityIcon from '../../assets/images/visibility.png';
 
 export const SignIn = () => {
-  const [email, setEmail] = useState('tester@gmail.com');
-  const [password, setPassword] = useState('••••••••');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { login } = useAuth();
+  const showToast = useToast();
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    login(email, password);
-    navigate('/main/dashboard');
+    setIsSubmitting(true);
+    try {
+      await login(email, password);
+      navigate('/main/dashboard');
+    } catch (loginError) {
+      showToast(loginError.message || 'Unable to sign in. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -40,7 +50,7 @@ export const SignIn = () => {
               type={showPassword ? 'text' : 'password'}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
+              placeholder="Enter your password"
               className="wetap-form-input"
               required
             />
@@ -63,7 +73,7 @@ export const SignIn = () => {
 
         <div className="wetap-form-submit-wrapper">
           <button type="submit" className="wetap-gradient-btn">
-            LOG IN
+            {isSubmitting ? 'LOGGING IN...' : 'LOG IN'}
           </button>
         </div>
       </form>
