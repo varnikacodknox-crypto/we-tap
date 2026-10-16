@@ -1,7 +1,15 @@
-import { useState, useEffect, useMemo } from 'react';
+import { lazy, Suspense, useState, useEffect, useMemo } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import Sidebar from '../common/Sidebar';
 import Header from '../common/Header';
+import { isNewUi } from '../../config/uiVersion';
+
+const HeaderOrgInfo = lazy(() => import('../v2/HeaderOrgInfo'));
+const headerOrgInfo = isNewUi ? (
+  <Suspense fallback={null}>
+    <HeaderOrgInfo />
+  </Suspense>
+) : null;
 
 export const MainLayout = () => {
   const [isCollapsed, setIsCollapsed] = useState(() =>
@@ -69,6 +77,7 @@ export const MainLayout = () => {
           isCollapsed={isCollapsed}
           toggleSidebar={toggleSidebar}
           customHeader={activeCustomHeader}
+          rightContent={headerOrgInfo}
         />
         <main className="wetap-content-area">
           <div key={location.pathname} className="wetap-page-transition">

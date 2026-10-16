@@ -7,7 +7,7 @@ const STORAGE_KEYS = ['token', 'role', 'browserDetail', 'activeIndex'];
 
 const getBrowserDetail = () => {
   const agent = navigator.userAgent;
-  const browsers = [
+  const browers = [
     ['Edge', /Edg\/(\d+)/],
     ['Opera', /OPR\/(\d+)/],
     ['Chrome', /Chrome\/(\d+)/],

@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { useAuth } from './context/useAuth';
@@ -16,6 +17,9 @@ import CardsList from './pages/cards/CardsList';
 import RequestCardList from './pages/request/RequestCardList';
 import PlaceCardList from './pages/placecard/PlaceCardList';
 import Settings from './pages/settings/Settings';
+import { isNewUi } from './config/uiVersion';
+
+const OrgDashboard = lazy(() => import('./pages/v2/OrgDashboard'));
 
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated } = useAuth();
@@ -44,7 +48,18 @@ function App() {
               }
             >
               <Route index element={<Navigate to="/main/dashboard" replace />} />
-              <Route path="dashboard" element={<Dashboard />} />
+              <Route
+                path="dashboard"
+                element={
+                  isNewUi ? (
+                    <Suspense fallback={null}>
+                      <OrgDashboard />
+                    </Suspense>
+                  ) : (
+                    <Dashboard />
+                  )
+                }
+              />
               <Route path="users/list" element={<UsersList />} />
               <Route path="cards/list" element={<CardsList />} />
               <Route path="request/list" element={<RequestCardList />} />

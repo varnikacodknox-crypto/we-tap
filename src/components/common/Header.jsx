@@ -3,7 +3,7 @@ import { useAuth } from '../../context/useAuth';
 import { LogOut, ChevronLeft } from 'lucide-react';
 import backWetapIcon from '../../assets/images/back_wetap.svg';
 
-export const Header = ({ title, isCollapsed, toggleSidebar, customHeader }) => {
+export const Header = ({ title, isCollapsed, toggleSidebar, customHeader, rightContent }) => {
   const { logout } = useAuth();
   const navigate = useNavigate();
 
@@ -11,6 +11,17 @@ export const Header = ({ title, isCollapsed, toggleSidebar, customHeader }) => {
     logout();
     navigate('/signin');
   };
+
+  // Extra header content (new UI only) sits just left of the logout button.
+  const withRightContent = (logoutButton) =>
+    rightContent ? (
+      <div className="wtv2-header-right">
+        {rightContent}
+        {logoutButton}
+      </div>
+    ) : (
+      logoutButton
+    );
 
   if (customHeader) {
     return (
@@ -31,7 +42,7 @@ export const Header = ({ title, isCollapsed, toggleSidebar, customHeader }) => {
             <h1 className="wetap-header-title">{customHeader.title}</h1>
           )}
         </div>
-        {customHeader.showLogout && (
+        {customHeader.showLogout && withRightContent(
           <button 
             className="wetap-logout-btn"
             onClick={handleLogout}
@@ -62,13 +73,15 @@ export const Header = ({ title, isCollapsed, toggleSidebar, customHeader }) => {
         </button>
         <h1 className="wetap-header-title">{title}</h1>
       </div>
-      <button 
-        className="wetap-logout-btn"
-        onClick={handleLogout}
-        title="Log Out"
-      >
-        <LogOut className="wetap-logout-icon" size={22} />
-      </button>
+      {withRightContent(
+        <button 
+          className="wetap-logout-btn"
+          onClick={handleLogout}
+          title="Log Out"
+        >
+          <LogOut className="wetap-logout-icon" size={22} />
+        </button>
+      )}
     </header>
   );
 };
