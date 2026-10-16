@@ -16,9 +16,25 @@ export const MainLayout = () => {
         setIsCollapsed(true);
       }
     };
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape' && window.innerWidth < 1024) {
+        setIsCollapsed(true);
+      }
+    };
     window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('keydown', handleKeyDown);
+    };
   }, []);
+
+  // On phones and tablets the sidebar is an overlay drawer, so close it once a page is picked.
+  const closeSidebarOnMobile = () => {
+    if (window.innerWidth < 1024) {
+      setIsCollapsed(true);
+    }
+  };
 
   const getPageTitle = (path) => {
     if (path.includes('/dashboard')) return 'Dashboard';
@@ -39,7 +55,14 @@ export const MainLayout = () => {
 
   return (
     <div className="wetap-app-layout">
-      <Sidebar isCollapsed={isCollapsed} />
+      <Sidebar isCollapsed={isCollapsed} onNavigate={closeSidebarOnMobile} />
+      {!isCollapsed && (
+        <div
+          className="wetap-sidebar-backdrop"
+          onClick={closeSidebarOnMobile}
+          aria-hidden="true"
+        />
+      )}
       <div className={`wetap-main-container ${isCollapsed ? 'collapsed-sidebar' : ''}`}>
         <Header
           title={getPageTitle(location.pathname)}

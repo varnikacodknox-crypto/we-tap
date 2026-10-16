@@ -427,6 +427,7 @@ select {
 /* Main Content Area */
 .wetap-main-container {
   flex: 1;
+  min-width: 0;
   margin-left: var(--sidebar-width);
   display: flex;
   flex-direction: column;
@@ -438,6 +439,37 @@ select {
 
 .wetap-main-container.collapsed-sidebar {
   margin-left: 0;
+}
+
+/* Dimmed backdrop behind the sidebar drawer (phones & tablets only) */
+.wetap-sidebar-backdrop {
+  display: none;
+}
+
+@media (max-width: 1023px) {
+  /* Sidebar slides over the page instead of pushing it aside */
+  .wetap-main-container {
+    margin-left: 0;
+  }
+
+  .wetap-sidebar-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 999;
+    background: rgba(15, 23, 42, 0.4);
+    animation: wetapBackdropIn 0.3s ease;
+  }
+}
+
+@keyframes wetapBackdropIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 /* Header */
@@ -774,7 +806,7 @@ select {
   background: #ffffff;
   border: 1px solid #f1f5f9;
   border-radius: 12px;
-  overflow: hidden;
+  overflow-x: auto;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.02);
 }
 
@@ -1558,7 +1590,7 @@ select {
 }
 
 /* 4. Mobile (375px to 767px) */
-@media (min-width: 375px) and (max-width: 767px) {
+@media (max-width: 767px) {
 
   /* Auth Screen */
   .wetap-auth-page {
@@ -2074,7 +2106,7 @@ select {
 
 .wetap-user-cards-main-layout {
   display: grid;
-  grid-template-columns: minmax(320px, 420px) 1fr;
+  grid-template-columns: minmax(320px, 420px) minmax(0, 1fr);
   gap: 56px;
   align-items: start;
   padding: 8px 4px;
@@ -2573,7 +2605,7 @@ select {
 
 @media (max-width: 900px) {
   .wetap-user-cards-main-layout {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     gap: 36px;
   }
 
@@ -2583,5 +2615,44 @@ select {
 
   .wetap-links-header-row {
     justify-content: space-between;
+  }
+}
+
+@media (max-width: 640px) {
+  /* Edit / History popups: use the phone's width */
+  .wetap-user-status-overlay {
+    padding: 12px;
+  }
+
+  .wetap-modal-card {
+    margin: 0;
+  }
+
+  .wetap-modal-header,
+  .wetap-modal-footer {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  /* History list keeps readable columns and scrolls sideways as one block */
+  .wetap-logs-table-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .wetap-logs-header-columns,
+  .wetap-logs-rows {
+    min-width: 560px;
+  }
+
+  .wetap-logs-header-columns,
+  .wetap-log-row {
+    column-gap: 12px;
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .wetap-log-row > span {
+    overflow-wrap: anywhere;
   }
 }

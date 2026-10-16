@@ -16,7 +16,7 @@ import placeInactive from '../../assets/images/place_card.svg';
 import settingActive from '../../assets/images/setting_white.svg';
 import settingInactive from '../../assets/images/setting_black.svg';
 
-export const Sidebar = ({ isCollapsed }) => {
+export const Sidebar = ({ isCollapsed, onNavigate }) => {
   const location = useLocation();
 
   const navItems = [
@@ -89,6 +89,7 @@ export const Sidebar = ({ isCollapsed }) => {
                     `wetap-nav-item ${isActive ? 'active' : ''}`
                   }
                   title={isCollapsed ? item.name : ''}
+                  onClick={onNavigate}
                 >
                   <span className="wetap-nav-icon-wrapper">
                     <img
