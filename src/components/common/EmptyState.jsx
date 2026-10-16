@@ -1,4 +1,3 @@
-import React from 'react';
 import noRecordsImg from '../../assets/images/no.png';
 
 export const EmptyState = ({ subtitle = '' }) => {

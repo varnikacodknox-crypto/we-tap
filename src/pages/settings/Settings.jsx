@@ -1,9 +1,35 @@
 import { useEffect, useState } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
-import { changeOrganizationPassword, getOrganizationProfile } from '../../api/organization';
+import {
+  changeOrganizationPassword,
+  getOrganizationProfile,
+  updateOrganizationProfile,
+} from '../../api/organization';
 import { useAuth } from '../../context/useAuth';
 import { useToast } from '../../context/useToast';
 import LoadingIndicator from '../../components/common/LoadingIndicator';
+import { getMobileError, MOBILE_LENGTH, sanitizeMobile } from '../../utils/validation';
+
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+const PROFILE_FIELDS = {
+  orgEmail: 'Email is required.',
+  orgName: 'Name is required.',
+  orgAddress: 'Address is required.',
+};
+
+const validateProfile = (profile) => {
+  const errors = {};
+  Object.entries(PROFILE_FIELDS).forEach(([field, requiredMessage]) => {
+    if (!profile[field].trim()) errors[field] = requiredMessage;
+  });
+  if (!errors.orgEmail && !EMAIL_PATTERN.test(profile.orgEmail.trim())) {
+    errors.orgEmail = 'Please enter a valid email.';
+  }
+  const mobileError = getMobileError(profile.orgMobile);
+  if (mobileError) errors.orgMobile = mobileError;
+  return errors;
+};
 
 export const Settings = () => {
   const [activeTab, setActiveTab] = useState('password'); // 'password' | 'profile'
@@ -11,6 +37,10 @@ export const Settings = () => {
   const [submitMessage, setSubmitMessage] = useState('');
   const [profileError, setProfileError] = useState('');
   const [profileLoaded, setProfileLoaded] = useState(false);
+  const [isSavingProfile, setIsSavingProfile] = useState(false);
+  const [profileSuccessMessage, setProfileSuccessMessage] = useState('');
+  // Fields show their error once edited or after a submit attempt.
+  const [touchedProfileFields, setTouchedProfileFields] = useState({});
   const { accessToken } = useAuth();
   const showToast = useToast();
   const isLoadingProfile = !profileLoaded && !profileError;
@@ -48,7 +78,7 @@ export const Settings = () => {
         setProfileData({
           orgEmail: organization.email || '',
           orgName: organization.name || '',
-          orgAddress: '',
+          orgAddress: organization.address || '',
           orgMobile: organization.mobile || '',
         });
         setProfileLoaded(true);
@@ -83,9 +113,44 @@ export const Settings = () => {
     }
   };
 
-  const handleProfileSubmit = (e) => {
+  const profileErrors = validateProfile(profileData);
+  const getProfileError = (field) =>
+    touchedProfileFields[field] ? profileErrors[field] : undefined;
+  const updateProfileField = (field, value) => {
+    setProfileData((current) => ({ ...current, [field]: value }));
+    setTouchedProfileFields((current) => ({ ...current, [field]: true }));
+  };
+
+  const handleProfileSubmit = async (e) => {
     e.preventDefault();
-    showToast('Profile updates are unavailable because no update endpoint was provided.');
+    setTouchedProfileFields({ orgEmail: true, orgName: true, orgAddress: true, orgMobile: true });
+    if (Object.keys(profileErrors).length > 0) return;
+
+    setIsSavingProfile(true);
+    setProfileSuccessMessage('');
+    try {
+      const data = await updateOrganizationProfile(accessToken, {
+        name: profileData.orgName.trim(),
+        email: profileData.orgEmail.trim(),
+        address: profileData.orgAddress.trim(),
+        mobile: profileData.orgMobile.trim(),
+      });
+      const organization = data?.response;
+      if (organization) {
+        setProfileData((current) => ({
+          orgEmail: organization.email ?? current.orgEmail,
+          orgName: organization.name ?? current.orgName,
+          orgAddress: organization.address ?? current.orgAddress,
+          orgMobile: organization.mobile ?? current.orgMobile,
+        }));
+      }
+      setProfileSuccessMessage(data?.message || 'Organization updated successfully');
+      setTimeout(() => setProfileSuccessMessage(''), 3000);
+    } catch (error) {
+      showToast(error.message || 'Unable to update profile. Please try again.');
+    } finally {
+      setIsSavingProfile(false);
+    }
   };
 
   return (
@@ -205,19 +270,28 @@ export const Settings = () => {
                 <LoadingIndicator label="Loading organization profile" />
               )}
 
-              <form onSubmit={handleProfileSubmit} className="wetap-request-form">
+              {profileSuccessMessage && (
+                <div className="wetap-alert-success text-center mb-4 w-full">
+                  {profileSuccessMessage}
+                </div>
+              )}
+
+              <form onSubmit={handleProfileSubmit} className="wetap-request-form" noValidate>
                 <div className="wetap-form-group">
                   <label className="wetap-form-label">Organization Email</label>
                   <input
                     type="email"
                     value={profileData.orgEmail}
-                    onChange={(e) => {
-                      setProfileData({ ...profileData, orgEmail: e.target.value });
-                    }}
+                    onChange={(e) => updateProfileField('orgEmail', e.target.value)}
+                    onBlur={() => setTouchedProfileFields((current) => ({ ...current, orgEmail: true }))}
+                    aria-invalid={Boolean(getProfileError('orgEmail'))}
                     className="wetap-form-input"
-                    disabled={isLoadingProfile}
+                    disabled={isLoadingProfile || isSavingProfile}
                     required
                   />
+                  {getProfileError('orgEmail') && (
+                    <p className="wetap-field-error">{getProfileError('orgEmail')}</p>
+                  )}
                 </div>
 
                 <div className="wetap-form-group">
@@ -225,13 +299,16 @@ export const Settings = () => {
                   <input
                     type="text"
                     value={profileData.orgName}
-                    onChange={(e) => {
-                      setProfileData({ ...profileData, orgName: e.target.value });
-                    }}
+                    onChange={(e) => updateProfileField('orgName', e.target.value)}
+                    onBlur={() => setTouchedProfileFields((current) => ({ ...current, orgName: true }))}
+                    aria-invalid={Boolean(getProfileError('orgName'))}
                     className="wetap-form-input"
-                    disabled={isLoadingProfile}
+                    disabled={isLoadingProfile || isSavingProfile}
                     required
                   />
+                  {getProfileError('orgName') && (
+                    <p className="wetap-field-error">{getProfileError('orgName')}</p>
+                  )}
                 </div>
 
                 <div className="wetap-form-group">
@@ -240,12 +317,15 @@ export const Settings = () => {
                     type="text"
                     placeholder="Enter Organization Address"
                     value={profileData.orgAddress}
-                    onChange={(e) => {
-                      setProfileData({ ...profileData, orgAddress: e.target.value });
-                    }}
+                    onChange={(e) => updateProfileField('orgAddress', e.target.value)}
+                    onBlur={() => setTouchedProfileFields((current) => ({ ...current, orgAddress: true }))}
+                    aria-invalid={Boolean(getProfileError('orgAddress'))}
                     className="wetap-form-input"
-                    disabled={isLoadingProfile}
+                    disabled={isLoadingProfile || isSavingProfile}
                   />
+                  {getProfileError('orgAddress') && (
+                    <p className="wetap-field-error">{getProfileError('orgAddress')}</p>
+                  )}
                 </div>
 
                 <div className="wetap-form-group">
@@ -253,18 +333,28 @@ export const Settings = () => {
                   <input
                     type="text"
                     value={profileData.orgMobile}
-                    onChange={(e) => {
-                      setProfileData({ ...profileData, orgMobile: e.target.value });
-                    }}
+                    inputMode="numeric"
+                    maxLength={MOBILE_LENGTH}
+                    placeholder="Enter 10 digit mobile number"
+                    onChange={(e) => updateProfileField('orgMobile', sanitizeMobile(e.target.value))}
+                    onBlur={() => setTouchedProfileFields((current) => ({ ...current, orgMobile: true }))}
+                    aria-invalid={Boolean(getProfileError('orgMobile'))}
                     className="wetap-form-input"
-                    disabled={isLoadingProfile}
+                    disabled={isLoadingProfile || isSavingProfile}
                     required
                   />
+                  {getProfileError('orgMobile') && (
+                    <p className="wetap-field-error">{getProfileError('orgMobile')}</p>
+                  )}
                 </div>
 
                 <div className="wetap-form-submit-wrapper mt-6">
-                  <button type="submit" className="wetap-gradient-btn px-8" disabled={isLoadingProfile}>
-                    Save Profile
+                  <button
+                    type="submit"
+                    className="wetap-gradient-btn px-8"
+                    disabled={isLoadingProfile || isSavingProfile}
+                  >
+                    {isSavingProfile ? 'Updating...' : 'Update Profile'}
                   </button>
                 </div>
               </form>

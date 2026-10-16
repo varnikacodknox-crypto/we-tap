@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import Sidebar from '../common/Sidebar';
 import Header from '../common/Header';
@@ -7,6 +7,7 @@ export const MainLayout = () => {
   const [isCollapsed, setIsCollapsed] = useState(() =>
     typeof window !== 'undefined' ? window.innerWidth < 1024 : false
   );
+  const [customHeader, setCustomHeader] = useState(null);
   const location = useLocation();
 
   useEffect(() => {
@@ -33,6 +34,9 @@ export const MainLayout = () => {
     setIsCollapsed((prev) => !prev);
   };
 
+  const outletContext = useMemo(() => ({ setCustomHeader }), []);
+  const activeCustomHeader = location.pathname.includes('/users') ? customHeader : null;
+
   return (
     <div className="wetap-app-layout">
       <Sidebar isCollapsed={isCollapsed} />
@@ -41,10 +45,11 @@ export const MainLayout = () => {
           title={getPageTitle(location.pathname)}
           isCollapsed={isCollapsed}
           toggleSidebar={toggleSidebar}
+          customHeader={activeCustomHeader}
         />
         <main className="wetap-content-area">
           <div key={location.pathname} className="wetap-page-transition">
-            <Outlet />
+            <Outlet context={outletContext} />
           </div>
         </main>
       </div>

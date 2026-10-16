@@ -9,6 +9,7 @@ import {
   mockOrders,
   mockOrganizationProfile,
   mockPhysicalCards,
+  mockRequestedCards,
   mockUsers,
 } from './fixtures';
 
@@ -40,6 +41,13 @@ export const handlers = [
   http.get(apiUrl('/api/dashboard/users'), () => success(mockDashboardUsers)),
   http.get(apiUrl('/api/dashboard/cards'), () => success(mockDashboardCards)),
   http.get(apiUrl('/api/organization/profile'), () => success(mockOrganizationProfile)),
+  http.put(apiUrl('/api/organization'), async ({ request }) => {
+    Object.assign(mockOrganizationProfile.organization, await request.json());
+    return success({
+      message: 'Organization updated successfully',
+      response: mockOrganizationProfile.organization,
+    });
+  }),
   http.get(apiUrl('/api/orders/list'), ({ request }) => {
     const query = new URL(request.url).searchParams;
     const limit = Number(query.get('limit')) || 5;
@@ -58,6 +66,63 @@ export const handlers = [
     return success({
       totalCount: mockPhysicalCards.length,
       cardList: mockPhysicalCards.slice(offset, offset + limit),
+    });
+  }),
+  http.get(apiUrl('/api/card/requestedCardAccess'), ({ request }) => {
+    const query = new URL(request.url).searchParams;
+    const limit = Number(query.get('limit')) || 5;
+    const offset = Number(query.get('offset')) || 0;
+
+    return success({
+      totalCount: mockRequestedCards.length,
+      cardRequestList: mockRequestedCards.slice(offset, offset + limit),
+    });
+  }),
+  http.get(apiUrl('/api/card'), () => {
+    return success({
+      totalCount: 1,
+      cardList: [
+        {
+          name: 'test1',
+          email: 'test1@yopmail.com',
+          cardTitle: '',
+          status: 'active',
+          cardType: 'basicCard',
+          mobile: '',
+          jobTitle: '',
+          company: '',
+          address: '',
+          bio: '',
+          profileTheme: '#ffffff',
+          isColorYourIcon: false,
+          profilePic: '',
+          coverPic: '',
+          logo: '',
+          isDefault: true,
+          creationDate: '2026-10-14T06:58:22.494Z',
+          cardId: '6acf280e06a211634de8b93c',
+        },
+      ],
+    });
+  }),
+  http.get(apiUrl('/api/link'), () => {
+    return success({
+      totalCount: 1,
+      linkAddedList: [
+        {
+          userId: '6acf280e06a211634de8b939',
+          ishighlight: false,
+          userTitle: 'Email1',
+          link: 'test1@yopmail.com',
+          isShow: true,
+          isMakeDirect: false,
+          creationDate: '2026-10-14T06:58:23.009Z',
+          insertDate: 1791961103,
+          linkaddedId: '6acf280f06a211634de8b945',
+          title: 'Email',
+          icon: 'https://s3.us-east-1.amazonaws.com/wetap/weTap/1686044460104_Email_picture.png',
+        },
+      ],
     });
   }),
   http.post(apiUrl('/api/orders'), async ({ request }) => {
@@ -140,6 +205,46 @@ export const handlers = [
 
     user.planType = 'Subscribed';
     return success({});
+  }),
+  http.post(apiUrl('/api/link/linkAudit'), async () => {
+    return success({
+      totalCount: 1,
+      linkAddedLogs: [
+        {
+          _id: '6acf351806a211634de8bdb2',
+          email: null,
+          name: null,
+          role: 'org',
+          typeOfAction: 'linkUpdated',
+          previousData: {
+            userTitle: 'Email',
+            link: 'test1@yopmail.com',
+          },
+          updatedData: {
+            userTitle: 'Email',
+            link: 'test1@yopmail.com',
+          },
+          creationDate: '2026-10-14T07:54:00.971Z',
+          insertDate: 1791964441,
+        },
+      ],
+    });
+  }),
+  http.put(apiUrl('/api/link/added'), async ({ request }) => {
+    const body = await request.json();
+    return success({
+      message: 'Link updated successfully',
+      response: {
+        userId: '6acf280e06a211634de8b939',
+        userTitle: body.userTitle || 'Email1',
+        ishighlight: false,
+        link: body.link || 'test1@yopmail.com',
+        isShow: true,
+        creationDate: new Date().toISOString(),
+        insertDate: Math.floor(Date.now() / 1000),
+        isMakeDirect: false,
+      },
+    });
   }),
   http.all(`${apiUrl('/')}*`, () =>
     HttpResponse.json(

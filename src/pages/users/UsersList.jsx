@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import EmptyState from '../../components/common/EmptyState';
+import Pagination, { PAGE_SIZE } from '../../components/common/Pagination';
 import {
   assignUserSubscription,
   cancelUserSubscription,
@@ -15,6 +16,7 @@ import userStatusIcon from '../../assets/images/user_status.svg';
 import cardIcon from '../../assets/images/card.svg';
 import { updateUserDetails } from '../../api/users';
 import UserDetailsEditor from './UserDetailsEditor';
+import UserCardsView from './UserCardsView';
 import LoadingIndicator from '../../components/common/LoadingIndicator';
 
 export const UsersList = () => {
@@ -22,9 +24,11 @@ export const UsersList = () => {
   const [statusFilter, setStatusFilter] = useState('All');
   const [subFilter, setSubFilter] = useState('All');
   const [usersResult, setUsersResult] = useState(null);
+  const [page, setPage] = useState(0);
   const [usersError, setUsersError] = useState(null);
   const [editingUser, setEditingUser] = useState(null);
   const [editingDetailsUser, setEditingDetailsUser] = useState(null);
+  const [viewingCardsUser, setViewingCardsUser] = useState(null);
   const [subscriptionUser, setSubscriptionUser] = useState(null);
   const [subscriptionCancellationUser, setSubscriptionCancellationUser] = useState(null);
   const [isCancellingSubscription, setIsCancellingSubscription] = useState(false);
@@ -36,29 +40,30 @@ export const UsersList = () => {
   const [updateSuccess, setUpdateSuccess] = useState('');
   const { accessToken } = useAuth();
   const showToast = useToast();
-  const users = usersResult?.token === accessToken ? usersResult.data.users : [];
+  const queryKey = `${accessToken}|${page}`;
+  const users = usersResult?.queryKey === queryKey ? usersResult.data.users : [];
   const usersErrorMessage =
-    usersError?.token === accessToken ? usersError.message : '';
+    usersError?.queryKey === queryKey ? usersError.message : '';
   const isLoadingUsers =
-    usersResult?.token !== accessToken && !usersErrorMessage;
+    usersResult?.queryKey !== queryKey && !usersErrorMessage;
 
   useEffect(() => {
     const controller = new AbortController();
 
-    getUsers(accessToken, { limit: 5, offset: 0 }, controller.signal)
+    getUsers(accessToken, { limit: PAGE_SIZE, offset: page * PAGE_SIZE }, controller.signal)
       .then((data) => {
-        setUsersResult({ token: accessToken, data });
+        setUsersResult({ queryKey, data });
         setUsersError(null);
       })
       .catch((error) => {
         if (!controller.signal.aborted) {
-          setUsersError({ token: accessToken, message: error.message });
+          setUsersError({ queryKey, message: error.message });
           showToast(error.message);
         }
       });
 
     return () => controller.abort();
-  }, [accessToken, showToast]);
+  }, [accessToken, page, queryKey, showToast]);
 
   const normalizedSearch = searchTerm.toLowerCase();
   const filteredUsers = users.filter((user) => {
@@ -97,7 +102,7 @@ export const UsersList = () => {
     try {
       await updateUserStatus(accessToken, editingUser.userId, selectedStatus);
       setUsersResult((current) => {
-        if (current?.token !== accessToken) return current;
+        if (current?.queryKey !== queryKey) return current;
         return {
           ...current,
           data: {
@@ -123,7 +128,7 @@ export const UsersList = () => {
   const handleDetailsSave = async (updatedUser) => {
     await updateUserDetails(accessToken, updatedUser);
     setUsersResult((current) => {
-      if (current?.token !== accessToken) return current;
+      if (current?.queryKey !== queryKey) return current;
       return {
         ...current,
         data: {
@@ -139,6 +144,10 @@ export const UsersList = () => {
     setEditingDetailsUser(null);
     setUpdateSuccess('User details updated successfully.');
   };
+
+  const handleCardsBack = useCallback(() => {
+    setViewingCardsUser(null);
+  }, []);
 
   const openSubscriptionEditor = (user) => {
     setSubscriptionUser(user);
@@ -158,7 +167,7 @@ export const UsersList = () => {
     try {
       await cancelUserSubscription(accessToken, subscriptionCancellationUser.userId);
       setUsersResult((current) => {
-        if (current?.token !== accessToken) return current;
+        if (current?.queryKey !== queryKey) return current;
         return {
           ...current,
           data: {
@@ -204,7 +213,7 @@ export const UsersList = () => {
         status: 'active',
       });
       setUsersResult((current) => {
-        if (current?.token !== accessToken) return current;
+        if (current?.queryKey !== queryKey) return current;
         return {
           ...current,
           data: {
@@ -236,6 +245,17 @@ export const UsersList = () => {
           user={editingDetailsUser}
           onBack={() => setEditingDetailsUser(null)}
           onSave={handleDetailsSave}
+        />
+      </div>
+    );
+  }
+
+  if (viewingCardsUser) {
+    return (
+      <div className="wetap-page-container">
+        <UserCardsView
+          user={viewingCardsUser}
+          onBack={handleCardsBack}
         />
       </div>
     );
@@ -315,9 +335,15 @@ export const UsersList = () => {
                     </span>
                   </td>
                   <td>
-                    <span className="wetap-user-cards-icon">
+                    <button
+                      type="button"
+                      className="wetap-user-cards-icon-btn"
+                      onClick={() => setViewingCardsUser(user)}
+                      title={`View cards for ${user.name}`}
+                      aria-label={`View cards for ${user.name}`}
+                    >
                       <img src={cardIcon} alt="Cards" />
-                    </span>
+                    </button>
                   </td>
                   <td>{user.planType}</td>
                   <td>{user.creationDate?.slice(0, 10) || ''}</td>
@@ -363,6 +389,14 @@ export const UsersList = () => {
           <EmptyState />
         )}
       </div>
+
+      <Pagination
+        page={page}
+        totalCount={usersResult?.queryKey === queryKey ? usersResult.data.totalCount : undefined}
+        itemCount={users.length}
+        onPageChange={setPage}
+        disabled={isLoadingUsers}
+      />
 
       {editingUser && createPortal(
         <div

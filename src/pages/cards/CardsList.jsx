@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import EmptyState from '../../components/common/EmptyState';
+import Pagination, { PAGE_SIZE } from '../../components/common/Pagination';
 import LoadingIndicator from '../../components/common/LoadingIndicator';
 import { getPhysicalCards } from '../../api/cards';
 import { useAuth } from '../../context/useAuth';
@@ -20,31 +21,33 @@ export const CardsList = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
   const [cardsResult, setCardsResult] = useState(null);
+  const [page, setPage] = useState(0);
   const [cardsError, setCardsError] = useState(null);
   const { accessToken } = useAuth();
   const showToast = useToast();
-  const cards = cardsResult?.token === accessToken ? cardsResult.data.cardList || [] : [];
+  const queryKey = `${accessToken}|${page}`;
+  const cards = cardsResult?.queryKey === queryKey ? cardsResult.data.cardList || [] : [];
   const cardsErrorMessage =
-    cardsError?.token === accessToken ? cardsError.message : '';
-  const isLoadingCards = cardsResult?.token !== accessToken && !cardsErrorMessage;
+    cardsError?.queryKey === queryKey ? cardsError.message : '';
+  const isLoadingCards = cardsResult?.queryKey !== queryKey && !cardsErrorMessage;
 
   useEffect(() => {
     const controller = new AbortController();
 
-    getPhysicalCards(accessToken, { limit: 5, offset: 0 }, controller.signal)
+    getPhysicalCards(accessToken, { limit: PAGE_SIZE, offset: page * PAGE_SIZE }, controller.signal)
       .then((data) => {
-        setCardsResult({ token: accessToken, data });
+        setCardsResult({ queryKey, data });
         setCardsError(null);
       })
       .catch((error) => {
         if (!controller.signal.aborted) {
-          setCardsError({ token: accessToken, message: error.message });
+          setCardsError({ queryKey, message: error.message });
           showToast(error.message);
         }
       });
 
     return () => controller.abort();
-  }, [accessToken, showToast]);
+  }, [accessToken, page, queryKey, showToast]);
 
   const normalizedSearch = searchTerm.toLowerCase();
   const filteredCards = cards.filter((card) => {
@@ -120,6 +123,14 @@ export const CardsList = () => {
           <EmptyState />
         )}
       </div>
+
+      <Pagination
+        page={page}
+        totalCount={cardsResult?.queryKey === queryKey ? cardsResult.data.totalCount : undefined}
+        itemCount={cards.length}
+        onPageChange={setPage}
+        disabled={isLoadingCards}
+      />
     </div>
   );
 };

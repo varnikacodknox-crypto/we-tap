@@ -1,31 +1,75 @@
-import React, { useState } from 'react';
+import { useEffect, useState } from 'react';
 import EmptyState from '../../components/common/EmptyState';
-import { mockCardRequests } from '../../data/mockData';
+import Pagination, { PAGE_SIZE } from '../../components/common/Pagination';
+import LoadingIndicator from '../../components/common/LoadingIndicator';
+import { getRequestedCards } from '../../api/cards';
+import { useAuth } from '../../context/useAuth';
+import { useToast } from '../../context/useToast';
+
+// The request list shape isn't confirmed yet, so read the likely field names with fallbacks.
+const getRequestName = (request) =>
+  request.name || request.userName || request.userDetails?.name || '';
+const getRequestEmail = (request) => request.email || request.userDetails?.email || '';
+const getRequestStatus = (request) => request.status || '';
+const getRequestId = (request) => request.requestId || request.cardId || request._id || '';
+const getRequestDate = (request) => {
+  if (request.creationDate) return request.creationDate.slice(0, 10);
+  if (request.insertDate) return new Date(request.insertDate * 1000).toISOString().slice(0, 10);
+  return '';
+};
 
 export const RequestCardList = () => {
   const [activeTab, setActiveTab] = useState('requested'); // 'requested' | 'form'
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
-  const [showEmptyState, setShowEmptyState] = useState(true); // Matches screenshot 1 (No Records Found default)
+  const [requestsResult, setRequestsResult] = useState(null);
+  const [page, setPage] = useState(0);
+  const [requestsError, setRequestsError] = useState(null);
+  const { accessToken } = useAuth();
+  const showToast = useToast();
+  const queryKey = `${accessToken}|${page}`;
+  const requests =
+    requestsResult?.queryKey === queryKey ? requestsResult.data.cardRequestList || [] : [];
+  const requestsErrorMessage =
+    requestsError?.queryKey === queryKey ? requestsError.message : '';
+  const isLoadingRequests =
+    requestsResult?.queryKey !== queryKey && !requestsErrorMessage;
 
   // Form states for Request Card tab
   const [cardId, setCardId] = useState('');
   const [email, setEmail] = useState('');
   const [submitted, setSubmitted] = useState(false);
 
-  const filteredRequests = showEmptyState
-    ? []
-    : mockCardRequests.filter((req) => {
-      const matchesSearch =
-        req.requestedBy.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        req.department.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        req.id.toLowerCase().includes(searchTerm.toLowerCase());
+  useEffect(() => {
+    const controller = new AbortController();
 
-      const matchesStatus =
-        statusFilter === 'All' || req.status.toLowerCase() === statusFilter.toLowerCase();
+    getRequestedCards(accessToken, { limit: PAGE_SIZE, offset: page * PAGE_SIZE }, controller.signal)
+      .then((data) => {
+        setRequestsResult({ queryKey, data });
+        setRequestsError(null);
+      })
+      .catch((error) => {
+        if (!controller.signal.aborted) {
+          setRequestsError({ queryKey, message: error.message });
+          showToast(error.message);
+        }
+      });
 
-      return matchesSearch && matchesStatus;
-    });
+    return () => controller.abort();
+  }, [accessToken, page, queryKey, showToast]);
+
+  const normalizedSearch = searchTerm.toLowerCase();
+  const filteredRequests = requests.filter((request) => {
+    const matchesSearch =
+      getRequestName(request).toLowerCase().includes(normalizedSearch) ||
+      getRequestEmail(request).toLowerCase().includes(normalizedSearch);
+
+    const matchesStatus =
+      statusFilter === 'All' ||
+      getRequestStatus(request).toLowerCase() === statusFilter.toLowerCase();
+
+    return matchesSearch && matchesStatus;
+  });
 
   const handleFormSubmit = (e) => {
     e.preventDefault();
@@ -89,15 +133,15 @@ export const RequestCardList = () => {
                 </tr>
               </thead>
               <tbody>
-                {filteredRequests.length > 0 ? (
-                  filteredRequests.map((req) => (
-                    <tr key={req.id}>
-                      <td className="font-semibold">{req.requestedBy}</td>
-                      <td>{req.requestedBy.toLowerCase().replace(" ", ".")}@gmail.com</td>
-                      <td>{req.requestDate}</td>
+                {!isLoadingRequests && !requestsErrorMessage && filteredRequests.length > 0 ? (
+                  filteredRequests.map((request, index) => (
+                    <tr key={getRequestId(request) || index}>
+                      <td className="font-semibold">{getRequestName(request)}</td>
+                      <td>{getRequestEmail(request)}</td>
+                      <td>{getRequestDate(request)}</td>
                       <td>
-                        <span className={`wetap-status-badge ${req.status.toLowerCase()}`}>
-                          {req.status}
+                        <span className={`wetap-status-badge ${getRequestStatus(request).toLowerCase()}`}>
+                          {getRequestStatus(request)}
                         </span>
                       </td>
                     </tr>
@@ -106,10 +150,19 @@ export const RequestCardList = () => {
               </tbody>
             </table>
 
-            {filteredRequests.length === 0 && (
+            {isLoadingRequests && <LoadingIndicator label="Loading requested cards" />}
+            {!isLoadingRequests && !requestsErrorMessage && filteredRequests.length === 0 && (
               <EmptyState />
             )}
           </div>
+
+          <Pagination
+            page={page}
+            totalCount={requestsResult?.queryKey === queryKey ? requestsResult.data.totalCount : undefined}
+            itemCount={requests.length}
+            onPageChange={setPage}
+            disabled={isLoadingRequests}
+          />
         </div>
       )}
 

@@ -1,13 +1,25 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { forgotPassword } from '../../api/auth';
+import { useToast } from '../../context/useToast';
 
 export const ForgotPassword = () => {
   const [email, setEmail] = useState('');
-  const [submitted, setSubmitted] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const showToast = useToast();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setSubmitted(true);
+    setIsSubmitting(true);
+    try {
+      const data = await forgotPassword(email.trim());
+      setSuccessMessage(data?.message || 'Reset link sent! Please check your email inbox.');
+    } catch (error) {
+      showToast(error.message || 'Unable to send reset link. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -18,9 +30,9 @@ export const ForgotPassword = () => {
         We'll send you an email to reset your password.
       </p>
 
-      {submitted ? (
+      {successMessage ? (
         <div className="wetap-success-notice">
-          <p>Reset link sent! Please check your email inbox.</p>
+          <p>{successMessage}</p>
           <Link to="/signin" className="wetap-back-login-btn">
             Back to Log In ?
           </Link>
@@ -40,8 +52,8 @@ export const ForgotPassword = () => {
           </div>
 
           <div className="wetap-form-submit-wrapper">
-            <button type="submit" className="wetap-gradient-btn">
-              SUBMIT
+            <button type="submit" className="wetap-gradient-btn" disabled={isSubmitting}>
+              {isSubmitting ? 'SUBMITTING...' : 'SUBMIT'}
             </button>
           </div>
 

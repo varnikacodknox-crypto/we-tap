@@ -119,6 +119,16 @@ export const mockPhysicalCards = [
   },
 ];
 
+export const mockRequestedCards = [
+  {
+    requestId: 'mock-request-1',
+    name: 'Test User1',
+    email: 'testname@yopmail.com',
+    status: 'pending',
+    creationDate: '2026-10-10T11:30:00.000Z',
+  },
+];
+
 export const mockUsers = [
   {
     authType: 'app',

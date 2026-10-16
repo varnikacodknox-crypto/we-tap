@@ -1,8 +1,9 @@
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/useAuth';
 import { LogOut, ChevronLeft } from 'lucide-react';
+import backWetapIcon from '../../assets/images/back_wetap.svg';
 
-export const Header = ({ title, isCollapsed, toggleSidebar }) => {
+export const Header = ({ title, isCollapsed, toggleSidebar, customHeader }) => {
   const { logout } = useAuth();
   const navigate = useNavigate();
 
@@ -10,6 +11,38 @@ export const Header = ({ title, isCollapsed, toggleSidebar }) => {
     logout();
     navigate('/signin');
   };
+
+  if (customHeader) {
+    return (
+      <header className="wetap-header wetap-custom-header">
+        <div className="wetap-header-left">
+          {customHeader.onBack && (
+            <button
+              type="button"
+              onClick={customHeader.onBack}
+              className="wetap-header-back-btn"
+              title="Back"
+              aria-label="Back to Users"
+            >
+              <img src={backWetapIcon} alt="Back" />
+            </button>
+          )}
+          {customHeader.title && (
+            <h1 className="wetap-header-title">{customHeader.title}</h1>
+          )}
+        </div>
+        {customHeader.showLogout && (
+          <button 
+            className="wetap-logout-btn"
+            onClick={handleLogout}
+            title="Log Out"
+          >
+            <LogOut className="wetap-logout-icon" size={22} />
+          </button>
+        )}
+      </header>
+    );
+  }
 
   return (
     <header className="wetap-header">

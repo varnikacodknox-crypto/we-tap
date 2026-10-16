@@ -1,5 +1,3 @@
-import React from 'react';
-
 export const StatCard = ({ title, value, icon, colorVariant = 'pink' }) => {
   return (
     <div className={`wetap-stat-card ${colorVariant}`}>

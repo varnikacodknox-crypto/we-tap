@@ -145,8 +145,9 @@ select {
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
   text-align: left;
+  margin-bottom: 18px;
 }
 
 .wetap-form-label {
@@ -258,8 +259,7 @@ select {
 
 .wetap-back-login-btn {
   display: inline-block;
-  background: #e0f2fe;
-  color: #0284c7;
+  color: #000;
   font-size: 13px;
   font-weight: 600;
   padding: 6px 14px;
@@ -682,7 +682,15 @@ select {
 
 .wetap-svg-chart-container {
   width: 100%;
-  height: 320px;
+}
+
+.wetap-line-chart {
+  width: 100%;
+}
+
+.wetap-line-chart svg {
+  display: block;
+  overflow: visible;
 }
 
 .wetap-analytics-svg {
@@ -805,8 +813,8 @@ select {
 .wetap-status-badge.shipped {
   background: #F0FAE6;
   color: #95C55F;
-  font-size:14px;
-      border: 1px solid #95C55F;
+  font-size: 14px;
+  border: 1px solid #95C55F;
 
 }
 
@@ -814,16 +822,16 @@ select {
 .wetap-status-badge.rejected {
   background: #fef2f2;
   color: #ef4444;
-  font-size:14px;
-      border: 1px solid #ef4444;
+  font-size: 14px;
+  border: 1px solid #ef4444;
 }
 
 .wetap-status-badge.pending,
 .wetap-status-badge.maintenance {
   background: #fffbe6;
   color: #d97706;
-  font-size:14px;
-      border: 1px solid #d97706;
+  font-size: 14px;
+  border: 1px solid #d97706;
 }
 
 .wetap-action-buttons {
@@ -835,7 +843,7 @@ select {
   width: 28px;
   height: 28px;
   border-radius: 6px;
-  border:none;
+  border: none;
   /* border: 1px solid #e2e8f0; */
   background: #ffffff;
   display: flex;
@@ -1010,7 +1018,6 @@ select {
   align-items: center;
   justify-content: center;
   padding: 20px;
-  background: rgb(0 0 0 / 48%);
 }
 
 .wetap-user-status-dialog {
@@ -1060,7 +1067,7 @@ select {
 }
 
 .wetap-user-existing-status span,
-.wetap-user-status-field > span {
+.wetap-user-status-field>span {
   color: #6b7280;
   font-size: 12px;
 }
@@ -1074,11 +1081,11 @@ select {
   text-transform: lowercase;
 }
 
-.wetap-user-status-field > span {
+.wetap-user-status-field>span {
   color: #ec4899;
 }
 
-.wetap-user-status-field > span b {
+.wetap-user-status-field>span b {
   color: #ef4444;
 }
 
@@ -1197,7 +1204,7 @@ select {
   margin: 30px 0 32px;
   color: #5b5b5b;
   font-size: 16px;
-    font-weight: 400;
+  font-weight: 400;
 }
 
 .wetap-subscription-cancellation-actions {
@@ -1552,6 +1559,7 @@ select {
 
 /* 4. Mobile (375px to 767px) */
 @media (min-width: 375px) and (max-width: 767px) {
+
   /* Auth Screen */
   .wetap-auth-page {
     flex-direction: column;
@@ -1691,7 +1699,7 @@ select {
   .wetap-data-table td {
     padding: 12px 14px;
     font-size: 13px;
-        font-weight: 500;
+    font-weight: 500;
     white-space: nowrap;
   }
 
@@ -1777,6 +1785,7 @@ select {
     padding: 0 16px;
   }
 }
+
 /* Toast alerts */
 .wetap-toast-container {
   position: fixed;
@@ -1819,6 +1828,7 @@ select {
     opacity: 0;
     transform: translateY(-8px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -1839,4 +1849,739 @@ select {
   margin: 6px 0 0;
   color: #ef4444;
   font-size: 12px;
+}
+
+/* Dashboard: line chart with a breakdown pie beside it */
+.wetap-chart-panels {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.wetap-chart-panels .wetap-svg-chart-container {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.wetap-pie-chart-container {
+  flex: 0 0 380px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.wetap-pie-svg {
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.wetap-pie-empty {
+  color: #777;
+  font-size: 14px;
+}
+
+@media (max-width: 1024px) {
+  .wetap-chart-panels {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .wetap-pie-chart-container {
+    flex-basis: auto;
+    max-width: 380px;
+    width: 100%;
+    margin: 0 auto;
+  }
+}
+
+.wetap-pie-slice {
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+.wetap-pie-slice.is-hovered {
+  opacity: 0.65;
+}
+
+/* Pie draws itself clockwise from 12 o'clock, then the labels fade in */
+.wetap-pie-reveal {
+  stroke-dasharray: 100;
+  stroke-dashoffset: 100;
+  animation: wetap-pie-sweep 0.9s ease-out forwards;
+}
+
+.wetap-pie-labels {
+  opacity: 0;
+  animation: wetap-pie-labels-in 0.3s ease-out 0.8s forwards;
+}
+
+@keyframes wetap-pie-sweep {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes wetap-pie-labels-in {
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wetap-pie-reveal {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+
+  .wetap-pie-labels {
+    animation: none;
+    opacity: 1;
+  }
+}
+
+.wetap-field-error {
+  margin: 2px 0 0;
+  color: #ef4444;
+  font-size: 13px;
+}
+
+.wetap-form-input[aria-invalid='true'] {
+  border-color: #fca5a5;
+}
+
+/* Pagination below list tables */
+.wetap-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 16px;
+}
+
+.wetap-pagination-summary {
+  color: #555;
+  font-size: 13px;
+}
+
+.wetap-pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.wetap-pagination-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 34px;
+  height: 34px;
+  padding: 0 8px;
+  border: 1px solid #d9d9d9;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #333;
+  font-family: var(--font-family);
+  font-size: 13px;
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.wetap-pagination-btn:hover:not(:disabled) {
+  border-color: #000;
+}
+
+.wetap-pagination-btn.active {
+  border-color: #000;
+  color: #000;
+}
+
+.wetap-pagination-btn:disabled:not(.active) {
+  color: #bbb;
+  cursor: not-allowed;
+}
+
+.wetap-pagination-gap {
+  color: #999;
+  padding: 0 2px;
+}
+
+@media (max-width: 640px) {
+  .wetap-pagination {
+    justify-content: center;
+  }
+}
+
+/* ==========================================================================
+   User Cards & Links Details View (Figma Match)
+   ========================================================================== */
+.wetap-header-back-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+
+.wetap-header-back-btn:hover {
+  background: #f1f5f9;
+  transform: translateX(-2px);
+}
+
+.wetap-header-back-btn img {
+  width: 24px;
+  height: 24px;
+  display: block;
+}
+
+.wetap-user-cards-icon-btn {
+  display: inline-grid;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  border-radius: 6px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+
+.wetap-user-cards-icon-btn:hover {
+  background: #f1f5f9;
+  transform: scale(1.1);
+}
+
+.wetap-user-cards-icon-btn img {
+  width: 26px;
+  height: 26px;
+  object-fit: contain;
+}
+
+.wetap-user-cards-view-wrapper {
+  width: 100%;
+  animation: wetapFadeIn 0.3s ease;
+}
+
+.wetap-cards-view-fallback-bar {
+  margin-bottom: 20px;
+}
+
+.wetap-user-cards-main-layout {
+  display: grid;
+  grid-template-columns: minmax(320px, 420px) 1fr;
+  gap: 56px;
+  align-items: start;
+  padding: 8px 4px;
+}
+
+.wetap-user-cards-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.wetap-cards-col-heading {
+  font-size: 24px;
+  font-weight: 500;
+  color: #1f2937;
+  margin: 0 0 28px 0;
+  text-align: center;
+  letter-spacing: -0.2px;
+  font-family: var(--font-family);
+}
+
+.wetap-card-visual-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+
+.wetap-card-stack-graphic-wrap {
+  position: relative;
+  width: 100%;
+  max-width: 390px;
+  display: inline-block;
+  user-select: none;
+}
+
+.wetap-card-stack-img {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 12px;
+  filter: drop-shadow(0 10px 24px rgba(0, 0, 0, 0.18));
+}
+
+.wetap-card-center-name {
+  position: absolute;
+  top: 42.5%;
+  left: 47%;
+  transform: translate(-50%, -50%);
+  color: #ffffff;
+  font-size: 15.5px;
+  font-weight: 500;
+  letter-spacing: 0.25px;
+  text-align: center;
+  white-space: nowrap;
+  pointer-events: none;
+  font-family: var(--font-family);
+}
+
+/* Right Column: Links Table */
+.wetap-user-links-col {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.wetap-links-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  margin-bottom: 28px;
+}
+
+.wetap-links-header-row .wetap-cards-col-heading {
+  margin-bottom: 0;
+}
+
+.wetap-add-mini-btn {
+  position: absolute;
+  right: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  color: #334155;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 6px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.wetap-add-mini-btn:hover {
+  background: #0f172a;
+  border-color: #0f172a;
+  color: #ffffff;
+}
+
+.wetap-links-table-card {
+  width: 100%;
+  background: #ffffff;
+}
+
+.wetap-links-table-scroll {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.wetap-links-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.wetap-links-table thead tr {
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.wetap-links-table th {
+  padding: 12px 18px;
+  font-size: 13.5px;
+  font-weight: 500;
+  color: #4b5563;
+  text-align: left;
+  white-space: nowrap;
+  font-family: var(--font-family);
+}
+
+.wetap-links-table th.col-icon,
+.wetap-links-table th.col-actions {
+  text-align: center;
+}
+
+.wetap-links-table tbody tr {
+  border-bottom: 1px solid #f3f4f6;
+  transition: background-color 0.15s ease;
+}
+
+.wetap-links-table tbody tr:hover {
+  background-color: #fafbfc;
+}
+
+.wetap-links-table td {
+  padding: 16px 18px;
+  font-size: 14px;
+  color: #1f2937;
+  vertical-align: middle;
+}
+
+.wetap-links-table td.col-icon,
+.wetap-links-table td.col-actions {
+  text-align: center;
+}
+
+.wetap-link-text {
+  color: #1f2937;
+  font-family: inherit;
+}
+
+.wetap-link-badge-icon {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+  border-radius: 8px;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.wetap-link-actions-group {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+}
+
+.wetap-link-action-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 5px;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+
+.wetap-link-action-btn:hover {
+  background: #f1f5f9;
+  transform: scale(1.12);
+}
+
+.wetap-link-action-btn.edit img {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+}
+
+.wetap-link-action-btn.history img {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+}
+
+.wetap-link-action-btn.delete {
+  opacity: 0.6;
+}
+
+.wetap-link-action-btn.delete:hover {
+  opacity: 1;
+  background: #fee2e2;
+}
+
+.wetap-trash-icon {
+  color: #ef4444;
+}
+
+/* Empty State */
+.wetap-links-no-data-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+  border: 1.5px dashed #e2e8f0;
+  border-radius: 12px;
+  background: #fafbfc;
+  text-align: center;
+}
+
+.wetap-no-data-graphic {
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
+  margin-bottom: 16px;
+}
+
+.wetap-no-data-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0 0 6px 0;
+}
+
+.wetap-no-data-desc {
+  font-size: 13px;
+  color: #64748b;
+  margin: 0 0 20px 0;
+  max-width: 320px;
+}
+
+.wetap-no-data-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* Modals: Edit User Links & Added Logs List (Exact Figma Match) */
+.wetap-modal-card {
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.16);
+  overflow: hidden;
+  width: min(100%, 540px);
+  margin: 16px;
+  display: flex;
+  flex-direction: column;
+  animation: wetapScaleIn 0.2s ease-out;
+}
+
+@keyframes wetapScaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.wetap-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 24px;
+  border-bottom: 1px solid #ededed;
+}
+
+.wetap-modal-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #111827;
+  margin: 0;
+  font-family: var(--font-family);
+}
+
+.wetap-modal-close-icon {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: #1f2937;
+  padding: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: opacity 0.15s ease, background 0.15s ease;
+}
+
+.wetap-modal-close-icon:hover {
+  background: #f1f5f9;
+}
+
+/* Edit User Links Modal Body */
+.wetap-edit-modal-body {
+  padding: 24px 24px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.wetap-custom-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.wetap-custom-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #000000;
+  font-family: var(--font-family);
+}
+
+.wetap-custom-input {
+  background: #eef0f2;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-size: 14px;
+  color: #374151;
+  font-family: inherit;
+  outline: none;
+  width: 100%;
+  box-sizing: border-box;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.wetap-custom-input:focus {
+  background: #ffffff;
+  border-color: #cbd5e1;
+  box-shadow: 0 0 0 2px rgba(100, 116, 139, 0.1);
+}
+
+.wetap-custom-input-readonly,
+.wetap-custom-input:disabled {
+  background: #f1f5f9;
+  color: #64748b;
+  cursor: not-allowed;
+  user-select: none;
+  opacity: 0.85;
+}
+
+/* Modal Footer with Green and Red Outline buttons */
+.wetap-modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 16px 24px;
+  border-top: 1px solid #ededed;
+  background: #ffffff;
+}
+
+.wetap-btn-outline-green {
+  background: #ffffff;
+  border: 1.5px solid #22c55e;
+  color: #16a34a;
+  padding: 7px 18px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: var(--font-family);
+  transition: all 0.15s ease;
+}
+
+.wetap-btn-outline-green:hover {
+  background: #f0fdf4;
+  border-color: #16a34a;
+}
+
+.wetap-btn-outline-red {
+  background: #ffffff;
+  border: 1.5px solid #ef4444;
+  color: #ef4444;
+  padding: 7px 20px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: var(--font-family);
+  transition: all 0.15s ease;
+}
+
+.wetap-btn-outline-red:hover {
+  background: #fef2f2;
+  border-color: #dc2626;
+}
+
+.wetap-btn-outline-green:disabled,
+.wetap-btn-outline-red:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Added Logs List Modal Body */
+.wetap-logs-modal {
+  width: min(94vw, 720px);
+}
+
+.wetap-logs-table-container {
+  width: 100%;
+}
+
+.wetap-logs-header-columns {
+  display: grid;
+  grid-template-columns: 1.1fr 1.3fr 1.2fr 1.6fr 0.9fr;
+  padding: 16px 24px;
+  border-bottom: 1px solid #ededed;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #475569;
+  font-family: var(--font-family);
+}
+
+.wetap-logs-rows {
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.wetap-log-row {
+  display: grid;
+  grid-template-columns: 1.1fr 1.3fr 1.2fr 1.6fr 0.9fr;
+  padding: 16px 24px;
+  border-bottom: 1px solid #ececec;
+  font-size: 13.5px;
+  color: #1f2937;
+  align-items: center;
+  font-family: var(--font-family);
+}
+
+.wetap-logs-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+  min-height: 160px;
+}
+
+.wetap-loader-gif {
+  width: 55px;
+  height: 55px;
+  object-fit: contain;
+}
+
+.wetap-logs-empty-view {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 38px 24px 44px;
+  text-align: center;
+}
+
+.wetap-logs-empty-img {
+  width: 130px;
+  height: 130px;
+  object-fit: contain;
+  margin-bottom: 14px;
+}
+
+.wetap-logs-empty-text {
+  font-size: 14px;
+  font-weight: 500;
+  color: #334155;
+  margin: 0;
+  font-family: var(--font-family);
+}
+
+@media (max-width: 900px) {
+  .wetap-user-cards-main-layout {
+    grid-template-columns: 1fr;
+    gap: 36px;
+  }
+
+  .wetap-add-mini-btn {
+    position: static;
+  }
+
+  .wetap-links-header-row {
+    justify-content: space-between;
+  }
 }

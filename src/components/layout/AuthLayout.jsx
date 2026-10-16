@@ -1,4 +1,3 @@
-import React from 'react';
 import { Outlet } from 'react-router-dom';
 import logo from '../../assets/images/wetapwelcome_logo.svg';
 import newLoginImg from '../../assets/images/wetap_newlogin.png';

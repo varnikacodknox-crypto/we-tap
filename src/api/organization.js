@@ -8,3 +8,10 @@ export const changeOrganizationPassword = (token, { oldPassword, newPassword }) 
     token,
     body: { oldPassword, newPassword },
   });
+
+export const updateOrganizationProfile = (token, { name, email, address, mobile }) =>
+  request('/api/organization', {
+    token,
+    method: 'PUT',
+    body: { name, email, address, mobile },
+  });
