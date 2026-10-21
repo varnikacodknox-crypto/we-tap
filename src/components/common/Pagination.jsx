@@ -1,6 +1,6 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
-export const PAGE_SIZE = 5;
+export const PAGE_SIZE = 10;
 
 // Page numbers to show: first, last, and a window around the current page, with gaps as null.
 const getPageItems = (currentPage, pageCount) => {

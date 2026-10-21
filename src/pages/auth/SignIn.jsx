@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/useAuth';
 import { useToast } from '../../context/useToast';
 import visibilityIcon from '../../assets/images/visibility.png';
+import AlertDialog from '../../components/common/AlertDialog';
 
 export const SignIn = () => {
   const [email, setEmail] = useState('');
@@ -12,6 +13,9 @@ export const SignIn = () => {
   const { login } = useAuth();
   const showToast = useToast();
   const navigate = useNavigate();
+  const location = useLocation();
+  // Set by the header after "Yes, logout"; cleared on OK so a refresh doesn't show it again.
+  const justLoggedOut = Boolean(location.state?.loggedOut);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -28,6 +32,14 @@ export const SignIn = () => {
 
   return (
     <div className="wetap-auth-form-container">
+      <AlertDialog
+        open={justLoggedOut}
+        variant="success"
+        title="Logged out!"
+        message="You have been successfully logged out."
+        confirmLabel="OK"
+        onConfirm={() => navigate(location.pathname, { replace: true, state: null })}
+      />
       <h2 className="wetap-auth-title">Organization Log In</h2>
 
       <form onSubmit={handleSubmit} className="wetap-auth-form">
@@ -72,7 +84,7 @@ export const SignIn = () => {
         </div>
 
         <div className="wetap-form-submit-wrapper">
-          <button type="submit" className="wetap-gradient-btn">
+          <button type="submit" className="wetap-gradient-btn" disabled={isSubmitting}>
             {isSubmitting ? 'LOGGING IN...' : 'LOG IN'}
           </button>
         </div>

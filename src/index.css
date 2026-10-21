@@ -163,7 +163,7 @@ select {
   border: 1px solid #ddd;
   border-radius: 6px;
   padding: 0 16px;
-  font-size: 0.95;
+  font-size: 12px;
   font-family: inherit;
   color: #555;
   outline: none;
@@ -2654,5 +2654,231 @@ select {
 
   .wetap-log-row > span {
     overflow-wrap: anywhere;
+  }
+}
+/* Stacked table: below 760px each row turns into a card with "Label: value" lines.
+   Opt in with .wetap-stacked-table (and .wetap-table-wrapper--stacked on the wrapper). */
+@media (max-width: 759px) {
+  .wetap-table-wrapper--stacked {
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+    overflow: visible;
+  }
+
+  .wetap-stacked-table thead {
+    display: none;
+  }
+
+  .wetap-stacked-table,
+  .wetap-stacked-table tbody {
+    display: block;
+    width: 100%;
+  }
+
+  .wetap-stacked-table tr {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 16px;
+    padding: 18px 20px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  }
+
+  .wetap-stacked-table td,
+  .wetap-data-table.wetap-stacked-table td {
+    display: block;
+    padding: 0;
+    border: 0;
+    font-size: 14px;
+    font-weight: 400;
+    color: #64748b;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  .wetap-stacked-table td[data-label]::before {
+    content: attr(data-label) ': ';
+    font-weight: 700;
+    color: #64748b;
+  }
+
+  /* Badges and buttons sit beside their label instead of under it. */
+  .wetap-stacked-table td.wetap-stacked-inline {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .wetap-stacked-table td.wetap-stacked-inline::before {
+    content: attr(data-label) ':';
+  }
+
+  .wetap-stacked-table .wetap-stacked-title {
+    font-size: 14px;
+    font-weight: 500;
+    color: #0f172a;
+  }
+
+  /* Date goes after the fields, as a small footer line. */
+  .wetap-stacked-table .wetap-stacked-date {
+    order: 1;
+    font-size: 12px;
+    color: #64748b;
+  }
+
+  /* Fields the card doesn't need (e.g. shown by a button already). */
+  .wetap-stacked-table td.wetap-stacked-hide {
+    display: none;
+  }
+
+  /* Action buttons come last, unlabeled: icons on the left, the wide button pushed right. */
+  .wetap-stacked-table td.wetap-stacked-actions {
+    order: 2;
+    margin-top: 8px;
+  }
+
+  .wetap-stacked-actions .wetap-action-buttons {
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .wetap-stacked-actions .wetap-nonsubscription-btn {
+    margin-left: auto;
+  }
+}
+
+/* Alert dialog (logout confirmation, logged-out notice) */
+.wetap-alert-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.4);
+  animation: wetapAlertFade 0.15s ease-out;
+}
+
+.wetap-alert-dialog {
+  width: min(100%, 512px);
+  padding: 40px 24px 32px;
+  box-sizing: border-box;
+  text-align: center;
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  animation: wetapAlertPop 0.2s ease-out;
+}
+
+.wetap-alert-icon {
+  width: 88px;
+  height: 88px;
+  margin: 0 auto 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 4px solid;
+  border-radius: 50%;
+  box-sizing: border-box;
+}
+
+.wetap-alert-icon.warning {
+  color: #f0b77f;
+  border-color: #f8d9b9;
+}
+
+.wetap-alert-icon.warning span {
+  font-size: 54px;
+  font-weight: 300;
+  line-height: 1;
+}
+
+.wetap-alert-icon.success {
+  color: #a5dc86;
+  border-color: rgba(165, 220, 134, 0.3);
+}
+
+.wetap-alert-icon.success svg {
+  width: 52px;
+  height: 52px;
+}
+
+.wetap-alert-title {
+  margin: 0 0 16px;
+  font-size: 18px;
+  font-weight: 600;
+  color: #545454;
+}
+
+.wetap-alert-message {
+  margin: 0 0 28px;
+  font-size: 16px;
+  color: #545454;
+}
+
+.wetap-alert-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+}
+
+.wetap-alert-btn {
+  min-width: 92px;
+  padding: 10px 24px;
+  font: inherit;
+  font-size: 16px;
+  font-weight: 600;
+  color: #ffffff;
+  border: 0;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: filter 0.15s;
+}
+
+.wetap-alert-btn:hover {
+  filter: brightness(0.92);
+}
+
+.wetap-alert-btn:focus-visible {
+  outline: 3px solid rgba(30, 69, 152, 0.35);
+  outline-offset: 2px;
+}
+
+.wetap-alert-btn.confirm {
+  background: #1e4598;
+}
+
+.wetap-alert-btn.cancel {
+  background: #cc4239;
+}
+
+@keyframes wetapAlertFade {
+  from { opacity: 0; }
+}
+
+@keyframes wetapAlertPop {
+  from { opacity: 0; transform: scale(0.95); }
+}
+
+@media (max-width: 480px) {
+  .wetap-alert-dialog {
+    padding: 32px 18px 24px;
+  }
+
+  .wetap-alert-icon {
+    width: 72px;
+    height: 72px;
+    margin-bottom: 20px;
+  }
+
+  .wetap-alert-message {
+    font-size: 14px;
   }
 }

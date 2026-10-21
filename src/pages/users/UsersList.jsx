@@ -17,6 +17,7 @@ import cardIcon from '../../assets/images/card.svg';
 import { updateUserDetails } from '../../api/users';
 import UserDetailsEditor from './UserDetailsEditor';
 import UserCardsView from './UserCardsView';
+import { formatDateTime } from '../../utils/date';
 import LoadingIndicator from '../../components/common/LoadingIndicator';
 
 export const UsersList = () => {
@@ -308,8 +309,9 @@ export const UsersList = () => {
       </div>
 
       {/* Table Container */}
-      <div className="wetap-table-wrapper">
-        <table className="wetap-data-table">
+      {/* Below 760px each row becomes a card; data-label supplies the field names. */}
+      <div className="wetap-table-wrapper wetap-table-wrapper--stacked">
+        <table className="wetap-data-table wetap-stacked-table">
           <thead>
             <tr>
               <th>Name</th>
@@ -326,15 +328,15 @@ export const UsersList = () => {
             {!isLoadingUsers && !usersErrorMessage && filteredUsers.length > 0 ? (
               filteredUsers.map((user) => (
                 <tr key={user.userId}>
-                  <td className="font-semibold text-dark">{user.name}</td>
-                  <td>{user.email}</td>
-                  <td>{user.userName}</td>
-                  <td>
+                  <td className="font-semibold text-dark wetap-stacked-title">{user.name}</td>
+                  <td data-label="Email">{user.email}</td>
+                  <td data-label="Username">{user.userName}</td>
+                  <td data-label="Status" className="wetap-stacked-inline">
                     <span className={`wetap-status-badge ${user.status.toLowerCase()}`}>
                       {user.status}
                     </span>
                   </td>
-                  <td>
+                  <td data-label="Cards" className="wetap-stacked-inline">
                     <button
                       type="button"
                       className="wetap-user-cards-icon-btn"
@@ -345,9 +347,9 @@ export const UsersList = () => {
                       <img src={cardIcon} alt="Cards" />
                     </button>
                   </td>
-                  <td>{user.planType}</td>
-                  <td>{user.creationDate?.slice(0, 10) || ''}</td>
-                  <td>
+                  <td data-label="Subscription" className="wetap-stacked-hide">{user.planType}</td>
+                  <td className="wetap-stacked-date">{formatDateTime(user)}</td>
+                  <td className="wetap-stacked-actions">
                     <div className="wetap-action-buttons">
                       <button
                         className="wetap-action-icon-btn view"

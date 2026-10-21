@@ -88,8 +88,9 @@ export const CardsList = () => {
       </div>
 
       {/* Table Container */}
-      <div className="wetap-table-wrapper">
-        <table className="wetap-data-table">
+      {/* Below 760px each row becomes a card; data-label supplies the field names. */}
+      <div className="wetap-table-wrapper wetap-table-wrapper--stacked">
+        <table className="wetap-data-table wetap-stacked-table">
           <thead>
             <tr>
               <th>Name</th>
@@ -103,15 +104,15 @@ export const CardsList = () => {
             {!isLoadingCards && !cardsErrorMessage && filteredCards.length > 0 ? (
               filteredCards.map((card, index) => (
                 <tr key={getCardId(card) || index}>
-                  <td className="font-semibold">{getCardName(card)}</td>
-                  <td>{getCardEmail(card)}</td>
-                  <td className="font-mono text-sm">{getCardId(card)}</td>
-                  <td>
+                  <td className="font-semibold wetap-stacked-title">{getCardName(card)}</td>
+                  <td data-label="Email">{getCardEmail(card)}</td>
+                  <td data-label="Card Id" className="font-mono text-sm">{getCardId(card)}</td>
+                  <td data-label="Status" className="wetap-stacked-inline">
                     <span className={`wetap-status-badge ${getCardStatus(card).toLowerCase()}`}>
                       {getCardStatus(card)}
                     </span>
                   </td>
-                  <td>{getCardDate(card)}</td>
+                  <td className="wetap-stacked-date">{getCardDate(card)}</td>
                 </tr>
               ))
             ) : null}

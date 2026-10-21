@@ -1,6 +1,6 @@
 import { request } from './client';
 
-export const getUsers = (token, { limit = 5, offset = 0 } = {}, signal) =>
+export const getUsers = (token, { limit = 10, offset = 0 } = {}, signal) =>
   request('/api/user/list', {
     token,
     query: { limit, offset },

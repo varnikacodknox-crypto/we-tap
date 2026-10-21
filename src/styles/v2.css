@@ -88,7 +88,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 10px;
+  border-radius: 50% !important;
   background: linear-gradient(135deg, #9333ea, #ec4899);
   color: #fff;
   font-size: 14px;
@@ -279,11 +279,32 @@
   box-sizing: border-box;
 }
 
-.wtv2-bars-empty {
+/* Double class so it beats the phone rule that left-aligns scrolling bars. */
+.wtv2-bars.wtv2-bars-empty {
   align-items: center;
   justify-content: center;
   font-size: 12px;
   color: var(--wtv2-faint);
+}
+
+/* Shared EmptyState, shrunk to fit the chart area (only inside the v2 chart). */
+.wtv2-bars-empty .wetap-empty-state {
+  padding: 0;
+}
+
+.wtv2-bars-empty .wetap-empty-icon-wrapper {
+  margin-bottom: 6px;
+}
+
+.wtv2-bars-empty .wetap-empty-img {
+  width: 110px;
+}
+
+.wtv2-bars-empty .wetap-empty-subtitle {
+  margin: 0;
+  font-size: 12px;
+  color: var(--wtv2-faint);
+  text-align: center;
 }
 
 .wtv2-bar-col {
@@ -315,13 +336,31 @@
 .wtv2-bar.green { background: linear-gradient(to top, #10b981, #2dd4bf); }
 
 .wtv2-bar-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   max-width: 100%;
   margin-top: 8px;
   font-size: 11px;
+  line-height: 1.35;
   color: #475569;
+}
+
+.wtv2-bar-label > span {
+  max-width: 100%;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.wtv2-bar-label .wtv2-bar-label-sep {
+  line-height: 1;
+  color: #475569;
+}
+
+/* Second line of a date range (the end date). */
+.wtv2-bar-label .wtv2-bar-label-end {
+    color: #475569;
 }
 
 /* Donut */
@@ -501,6 +540,25 @@
   color: var(--wtv2-faint);
 }
 
+/* Shared EmptyState, sized for the table (only inside the v2 table). */
+.wtv2-table-empty .wetap-empty-state {
+  padding: 16px 0;
+}
+
+.wtv2-table-empty .wetap-empty-icon-wrapper {
+  margin-bottom: 6px;
+}
+
+.wtv2-table-empty .wetap-empty-img {
+  width: 120px;
+}
+
+.wtv2-table-empty .wetap-empty-subtitle {
+  margin: 0;
+  font-size: 12px;
+  white-space: normal;
+}
+
 .wtv2-badge {
   display: inline-block;
   padding: 2px 8px;
@@ -582,22 +640,213 @@
   cursor: not-allowed;
 }
 
+/* Grid and flex children default to their content's width; let them shrink to the screen instead. */
+.wtv2-page,
+.wtv2-panel,
+.wtv2-charts-row > *,
+.wtv2-table-section {
+  min-width: 0;
+}
+
 @media (max-width: 1023px) {
   .wtv2-charts-row {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 24px;
+  }
+
+  .wtv2-donut-card {
+    max-width: 420px;
+    width: 100%;
+    margin: 0 auto;
+    box-sizing: border-box;
   }
 }
 
 @media (max-width: 640px) {
+  .wtv2-page {
+    gap: 16px;
+  }
+
   .wtv2-kpi-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .wtv2-kpi {
+    padding: 12px;
+  }
+
+  .wtv2-kpi-icon {
+    width: 32px;
+    height: 32px;
+    margin-bottom: 8px;
+  }
+
+  .wtv2-kpi-value {
+    font-size: 20px;
+  }
+
+  /* Tabs span the full width and scroll sideways if they ever don't fit. */
+  .wtv2-tabs {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .wtv2-tab {
+    flex: 1 0 auto;
+    padding: 10px 14px;
+    white-space: nowrap;
+  }
+
+  .wtv2-panel {
+    padding: 16px 12px;
+    gap: 20px;
+  }
+
+  .wtv2-chart-head {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .wtv2-chart-tools {
+    justify-content: space-between;
+  }
+
+  /* Bars keep a readable width and the chart scrolls sideways instead of squeezing the dates. */
+  .wtv2-bars {
+    overflow-x: auto;
+    justify-content: flex-start;
+    gap: 6px;
+    padding: 20px 8px 8px;
+  }
+
+  .wtv2-bar-col {
+    flex: 1 0 52px;
+  }
+
+  .wtv2-bar {
+    max-width: 28px;
+  }
+
+  .wtv2-donut-card {
+    padding: 16px;
   }
 
   .wtv2-search {
     width: 100%;
   }
 
-  .wtv2-panel {
-    padding: 16px;
+  .wtv2-table-head {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .wtv2-pagination {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .wtv2-pagination-info {
+    justify-content: space-between;
+  }
+
+  .wtv2-pagination-controls {
+    justify-content: center;
+  }
+}
+
+/* Stacked table: below 760px each row turns into a card with "Label: value" lines (matches the classic pages). */
+@media (max-width: 759px) {
+  .wtv2-table-wrap {
+    overflow: visible;
+  }
+
+  .wtv2-table.wtv2-stacked {
+    display: block;
+    border: 0;
+    overflow: visible;
+  }
+
+  .wtv2-stacked thead {
+    display: none;
+  }
+
+  .wtv2-stacked tbody {
+    display: block;
+  }
+
+  .wtv2-stacked tbody tr {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 12px;
+    padding: 16px 18px;
+    background: var(--wtv2-surface);
+    border: 1px solid var(--wtv2-border);
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgb(0 0 0 / 0.04);
+  }
+
+  .wtv2-stacked tbody tr:hover {
+    background: var(--wtv2-surface);
+  }
+
+  .wtv2-stacked td {
+    display: block;
+    padding: 0;
+    border: 0;
+    text-align: left;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    color: var(--wtv2-muted);
+  }
+
+  .wtv2-stacked td[data-label]::before {
+    content: attr(data-label) ': ';
+    font-weight: 700;
+    font-family: var(--font-family, 'Poppins', sans-serif);
+    color: var(--wtv2-muted);
+  }
+
+  .wtv2-stacked td.right {
+    text-align: left;
+  }
+
+  .wtv2-stacked td.wtv2-stack-inline {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .wtv2-stacked td.wtv2-stack-inline::before {
+    content: attr(data-label) ':';
+  }
+
+  .wtv2-stacked td.wtv2-stack-title {
+    order: -1;
+    font-size: 14px;
+    color: var(--wtv2-text);
+  }
+
+  .wtv2-stacked td.wtv2-stack-date {
+    order: 1;
+    font-size: 12px;
+  }
+
+  .wtv2-stacked td.wtv2-stack-hide {
+    display: none;
+  }
+
+  /* The empty-state row stays a plain centered block, not a card. */
+  .wtv2-stacked tbody tr:has(.wtv2-table-empty) {
+    border: 0;
+    box-shadow: none;
+    padding: 0;
+  }
+
+  .wtv2-stacked td.wtv2-table-empty {
+    text-align: center;
   }
 }

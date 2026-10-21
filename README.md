@@ -7,12 +7,12 @@ The API client defaults to `https://apiwetap.codknox.com`. Set
 Copy `.env.example` as a reference; do not put credentials or tokens in Vite
 environment variables.
 
-The captured API contracts currently wired into the app are organization login,
-dashboard totals and charts, organization profile reads, user listing, and
-user detail/status updates, subscription assignment/cancellation, and placed-card
-order listing/creation. The card/request lists and other unsupported write
-operations are not yet connected because the HAR does not contain enough
-successful request/response examples for those flows.
+The captured API contracts currently wired into the app are organization login
+and forgot password, dashboard totals and charts, organization profile
+read/update and password change, user listing and detail/status updates,
+subscription assignment/cancellation, physical and requested card lists, a
+user's cards and links (including link edits and audit logs), and placed-card
+order listing/creation.
 
 ## Local API mocks
 

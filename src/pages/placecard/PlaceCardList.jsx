@@ -6,8 +6,10 @@ import { createOrder, getOrders } from '../../api/orders';
 import { useAuth } from '../../context/useAuth';
 import { useToast } from '../../context/useToast';
 import { getMobileError, MOBILE_LENGTH, sanitizeMobile } from '../../utils/validation';
+import { formatDateTime } from '../../utils/date';
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 
 // Errors in form order, so the first invalid field can be reported on submit.
 const validatePlaceCardForm = (form) => {
@@ -181,8 +183,9 @@ export const PlaceCardList = () => {
           </div>
 
           {/* Table Container */}
-          <div className="wetap-table-wrapper">
-            <table className="wetap-data-table">
+          {/* Below 760px each row becomes a card; data-label supplies the field names. */}
+          <div className="wetap-table-wrapper wetap-table-wrapper--stacked">
+            <table className="wetap-data-table wetap-stacked-table">
               <thead>
                 <tr>
                   <th>Name</th>
@@ -198,13 +201,13 @@ export const PlaceCardList = () => {
                 {!isLoadingOrders && !ordersErrorMessage && filteredCards.length > 0 ? (
                   filteredCards.map((card) => (
                     <tr key={card.orderId}>
-                      <td className="font-semibold">{card.name}</td>
-                      <td>{card.email}</td>
-                      <td>{card.mobile}</td>
-                      <td>{card.cardType.charAt(0).toUpperCase() + card.cardType.slice(1)}</td>
-                      <td>{card.address}</td>
-                      <td>{card.creationDate?.slice(0, 10) || ''}</td>
-                      <td>
+                      <td className="font-semibold wetap-stacked-title">{card.name}</td>
+                      <td data-label="Email">{card.email}</td>
+                      <td data-label="Mobile No.">{card.mobile}</td>
+                      <td data-label="Card Type">{card.cardType.charAt(0).toUpperCase() + card.cardType.slice(1)}</td>
+                      <td data-label="Address">{card.address}</td>
+                      <td className="wetap-stacked-date">{formatDateTime(card)}</td>
+                      <td data-label="Status" className="wetap-stacked-inline">
                         <span className={`wetap-status-badge ${card.status.toLowerCase()}`}>
                           {card.status}
                         </span>

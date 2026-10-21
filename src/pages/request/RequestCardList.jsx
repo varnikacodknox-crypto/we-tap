@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import EmptyState from '../../components/common/EmptyState';
 import Pagination, { PAGE_SIZE } from '../../components/common/Pagination';
 import LoadingIndicator from '../../components/common/LoadingIndicator';
-import { getRequestedCards } from '../../api/cards';
+import { getRequestedCards, requestCardAccess } from '../../api/cards';
 import { useAuth } from '../../context/useAuth';
 import { useToast } from '../../context/useToast';
 
@@ -27,7 +27,9 @@ export const RequestCardList = () => {
   const [requestsError, setRequestsError] = useState(null);
   const { accessToken } = useAuth();
   const showToast = useToast();
-  const queryKey = `${accessToken}|${page}`;
+  // reloadCount refetches the list after a new request is submitted.
+  const [reloadCount, setReloadCount] = useState(0);
+  const queryKey = `${accessToken}|${page}|${reloadCount}`;
   const requests =
     requestsResult?.queryKey === queryKey ? requestsResult.data.cardRequestList || [] : [];
   const requestsErrorMessage =
@@ -38,7 +40,8 @@ export const RequestCardList = () => {
   // Form states for Request Card tab
   const [cardId, setCardId] = useState('');
   const [email, setEmail] = useState('');
-  const [submitted, setSubmitted] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -71,10 +74,37 @@ export const RequestCardList = () => {
     return matchesSearch && matchesStatus;
   });
 
-  const handleFormSubmit = (e) => {
+  const handleFormSubmit = async (e) => {
     e.preventDefault();
-    setSubmitted(true);
-    setTimeout(() => setSubmitted(false), 4000);
+    const trimmedCardId = cardId.trim();
+    const trimmedEmail = email.trim();
+
+    setSuccessMessage('');
+    if (!trimmedCardId && !trimmedEmail) {
+      showToast('Enter a Card ID or an email address.');
+      return;
+    }
+    if (trimmedCardId && trimmedEmail) {
+      showToast('Enter either a Card ID or an email address, not both.');
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const data = await requestCardAccess(
+        accessToken,
+        trimmedEmail ? { email: trimmedEmail } : { cardId: trimmedCardId }
+      );
+      setSuccessMessage(data?.message || 'Card access request submitted successfully!');
+      setCardId('');
+      setEmail('');
+      setPage(0);
+      setReloadCount((count) => count + 1);
+    } catch (error) {
+      showToast(error.message || 'Unable to request card access. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -122,8 +152,9 @@ export const RequestCardList = () => {
           </div>
 
           {/* Table Container */}
-          <div className="wetap-table-wrapper">
-            <table className="wetap-data-table">
+          {/* Below 760px each row becomes a card; data-label supplies the field names. */}
+          <div className="wetap-table-wrapper wetap-table-wrapper--stacked">
+            <table className="wetap-data-table wetap-stacked-table">
               <thead>
                 <tr>
                   <th>Name</th>
@@ -136,10 +167,10 @@ export const RequestCardList = () => {
                 {!isLoadingRequests && !requestsErrorMessage && filteredRequests.length > 0 ? (
                   filteredRequests.map((request, index) => (
                     <tr key={getRequestId(request) || index}>
-                      <td className="font-semibold">{getRequestName(request)}</td>
-                      <td>{getRequestEmail(request)}</td>
-                      <td>{getRequestDate(request)}</td>
-                      <td>
+                      <td className="font-semibold wetap-stacked-title">{getRequestName(request)}</td>
+                      <td data-label="Email">{getRequestEmail(request)}</td>
+                      <td className="wetap-stacked-date">{getRequestDate(request)}</td>
+                      <td data-label="Status" className="wetap-stacked-inline">
                         <span className={`wetap-status-badge ${getRequestStatus(request).toLowerCase()}`}>
                           {getRequestStatus(request)}
                         </span>
@@ -176,9 +207,9 @@ export const RequestCardList = () => {
                 Request a card access from the Wetap Admin
               </p>
 
-              {submitted && (
+              {successMessage && (
                 <div className="wetap-alert-success text-center mb-4">
-                  Card access request submitted successfully!
+                  {successMessage}
                 </div>
               )}
 
@@ -208,8 +239,8 @@ export const RequestCardList = () => {
                 </div>
 
                 <div className="wetap-form-submit-wrapper mt-4">
-                  <button type="submit" className="wetap-gradient-btn px-8">
-                    Request Card Access
+                  <button type="submit" className="wetap-gradient-btn px-8" disabled={isSubmitting}>
+                    {isSubmitting ? 'Requesting…' : 'Request Card Access'}
                   </button>
                 </div>
               </form>

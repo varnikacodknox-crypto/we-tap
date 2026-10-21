@@ -1,16 +1,37 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/useAuth';
 import { LogOut, ChevronLeft } from 'lucide-react';
 import backWetapIcon from '../../assets/images/back_wetap.svg';
+import AlertDialog from './AlertDialog';
 
 export const Header = ({ title, isCollapsed, toggleSidebar, customHeader, rightContent }) => {
   const { logout } = useAuth();
   const navigate = useNavigate();
 
-  const handleLogout = () => {
+  const [isConfirmingLogout, setIsConfirmingLogout] = useState(false);
+
+  // The logout button only asks for confirmation; the session ends on "Yes, logout".
+  const handleLogout = () => setIsConfirmingLogout(true);
+
+  const confirmLogout = () => {
+    setIsConfirmingLogout(false);
     logout();
-    navigate('/signin');
+    navigate('/signin', { replace: true, state: { loggedOut: true } });
   };
+
+  const logoutDialog = (
+    <AlertDialog
+      open={isConfirmingLogout}
+      variant="warning"
+      title="Are you sure?"
+      message="Do you really want to logout?"
+      confirmLabel="Yes, logout"
+      cancelLabel="Cancel"
+      onConfirm={confirmLogout}
+      onCancel={() => setIsConfirmingLogout(false)}
+    />
+  );
 
   // Extra header content (new UI only) sits just left of the logout button.
   const withRightContent = (logoutButton) =>
@@ -51,6 +72,7 @@ export const Header = ({ title, isCollapsed, toggleSidebar, customHeader, rightC
             <LogOut className="wetap-logout-icon" size={22} />
           </button>
         )}
+        {logoutDialog}
       </header>
     );
   }
@@ -82,6 +104,7 @@ export const Header = ({ title, isCollapsed, toggleSidebar, customHeader, rightC
           <LogOut className="wetap-logout-icon" size={22} />
         </button>
       )}
+      {logoutDialog}
     </header>
   );
 };

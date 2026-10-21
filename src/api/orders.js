@@ -1,6 +1,6 @@
 import { request } from './client';
 
-export const getOrders = (token, { limit = 5, offset = 0 } = {}, signal) =>
+export const getOrders = (token, { limit = 10, offset = 0 } = {}, signal) =>
   request('/api/orders/list', {
     token,
     query: { limit, offset },

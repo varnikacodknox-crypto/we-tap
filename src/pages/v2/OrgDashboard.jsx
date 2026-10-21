@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { BadgeCheck, CreditCard, MousePointerClick, UserCheck, Users, UserX } from 'lucide-react';
+import EmptyState from '../../components/common/EmptyState';
 import LoadingIndicator from '../../components/common/LoadingIndicator';
 import BarChart from '../../components/v2/BarChart';
 import DonutChart from '../../components/v2/DonutChart';
@@ -177,7 +178,7 @@ export const OrgDashboard = () => {
               <BarChart
                 items={chartItems}
                 variant={activeTab === 'subscriptions' ? 'green' : 'purple'}
-                emptyText={chart.isLoading ? '' : 'No data'}
+                isLoading={chart.isLoading}
               />
               <p className="wtv2-chart-axis">{tab.xAxis}</p>
             </div>
@@ -212,7 +213,8 @@ export const OrgDashboard = () => {
             </div>
 
             <div className="wtv2-table-wrap">
-              <table className="wtv2-table">
+              {/* Below 760px each row becomes a card; data-label supplies the field names. */}
+              <table className="wtv2-table wtv2-stacked">
                 <thead>
                   {activeTab === 'users' && (
                     <tr><th>#</th><th>Name</th><th>Username</th><th>Email</th><th>Joined</th><th className="right">Status</th></tr>
@@ -228,22 +230,22 @@ export const OrgDashboard = () => {
                   {activeTab === 'users' &&
                     filteredRows.map((user, index) => (
                       <tr key={user.userId || index}>
-                        <td className="muted mono">{page * pageSize + rows.indexOf(user) + 1}</td>
-                        <td className="strong">{user.name}</td>
-                        <td>{user.userName}</td>
-                        <td>{user.email}</td>
-                        <td>{formatDate(user)}</td>
-                        <td className="right"><StatusBadge status={user.status} /></td>
+                        <td className="muted mono wtv2-stack-hide">{page * pageSize + rows.indexOf(user) + 1}</td>
+                        <td className="strong wtv2-stack-title">{user.name}</td>
+                        <td data-label="Username">{user.userName}</td>
+                        <td data-label="Email">{user.email}</td>
+                        <td className="wtv2-stack-date">{formatDate(user)}</td>
+                        <td data-label="Status" className="right wtv2-stack-inline"><StatusBadge status={user.status} /></td>
                       </tr>
                     ))}
                   {activeTab === 'subscriptions' &&
                     filteredRows.map((user, index) => (
                       <tr key={user.userId || index}>
-                        <td className="strong">{user.name}</td>
-                        <td>{user.email}</td>
-                        <td>{user.planType}</td>
-                        <td>{formatDate(user)}</td>
-                        <td className="right">
+                        <td className="strong wtv2-stack-title">{user.name}</td>
+                        <td data-label="Email">{user.email}</td>
+                        <td data-label="Plan">{user.planType}</td>
+                        <td className="wtv2-stack-date">{formatDate(user)}</td>
+                        <td data-label="Subscription" className="right wtv2-stack-inline">
                           <span className={`wtv2-badge ${user.isPremiumUser ? 'green' : 'gray'}`}>
                             {user.isPremiumUser ? 'Subscription' : 'Non-Subscription'}
                           </span>
@@ -253,17 +255,17 @@ export const OrgDashboard = () => {
                   {activeTab === 'cards' &&
                     filteredRows.map((card, index) => (
                       <tr key={getCardId(card) || index}>
-                        <td className="mono strong">{getCardId(card)}</td>
-                        <td className="strong">{getCardName(card)}</td>
-                        <td>{getCardEmail(card)}</td>
-                        <td>{formatDate(card)}</td>
-                        <td className="right"><StatusBadge status={card.status} /></td>
+                        <td data-label="Card ID" className="mono strong">{getCardId(card)}</td>
+                        <td className="strong wtv2-stack-title">{getCardName(card)}</td>
+                        <td data-label="Email">{getCardEmail(card)}</td>
+                        <td className="wtv2-stack-date">{formatDate(card)}</td>
+                        <td data-label="Status" className="right wtv2-stack-inline"><StatusBadge status={card.status} /></td>
                       </tr>
                     ))}
                   {!table.isLoading && filteredRows.length === 0 && (
                     <tr>
                       <td colSpan={6} className="wtv2-table-empty">
-                        {table.error || (search ? 'No matches on this page.' : 'No records found.')}
+                        <EmptyState subtitle={table.error || (search ? 'No matches on this page.' : '')} />
                       </td>
                     </tr>
                   )}

@@ -50,7 +50,7 @@ export const handlers = [
   }),
   http.get(apiUrl('/api/orders/list'), ({ request }) => {
     const query = new URL(request.url).searchParams;
-    const limit = Number(query.get('limit')) || 5;
+    const limit = Number(query.get('limit')) || 10;
     const offset = Number(query.get('offset')) || 0;
 
     return success({
@@ -60,7 +60,7 @@ export const handlers = [
   }),
   http.get(apiUrl('/api/card/physicalCards'), ({ request }) => {
     const query = new URL(request.url).searchParams;
-    const limit = Number(query.get('limit')) || 5;
+    const limit = Number(query.get('limit')) || 10;
     const offset = Number(query.get('offset')) || 0;
 
     return success({
@@ -70,13 +70,25 @@ export const handlers = [
   }),
   http.get(apiUrl('/api/card/requestedCardAccess'), ({ request }) => {
     const query = new URL(request.url).searchParams;
-    const limit = Number(query.get('limit')) || 5;
+    const limit = Number(query.get('limit')) || 10;
     const offset = Number(query.get('offset')) || 0;
 
     return success({
       totalCount: mockRequestedCards.length,
       cardRequestList: mockRequestedCards.slice(offset, offset + limit),
     });
+  }),
+  http.post(apiUrl('/api/card/request/cardAccess'), async ({ request }) => {
+    const { email } = await request.json();
+    if (mockUsers.some((user) => user.email === email)) {
+      return HttpResponse.json({
+        apiId: 'local-mock',
+        statusCode: 400,
+        message: 'Failure',
+        data: { message: 'This user is already associated with your organization' },
+      });
+    }
+    return success({ message: 'Card access request submitted successfully!' });
   }),
   http.get(apiUrl('/api/card'), () => {
     return success({
@@ -144,7 +156,7 @@ export const handlers = [
   }),
   http.get(apiUrl('/api/user/list'), ({ request }) => {
     const query = new URL(request.url).searchParams;
-    const limit = Number(query.get('limit')) || 5;
+    const limit = Number(query.get('limit')) || 10;
     const offset = Number(query.get('offset')) || 0;
 
     return success({
