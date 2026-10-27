@@ -11,10 +11,19 @@ const getCardName = (card) => card.name || card.userName || card.userDetails?.na
 const getCardEmail = (card) => card.email || card.userDetails?.email || '';
 const getCardId = (card) => card.cardId || card.cardNumber || card._id || '';
 const getCardStatus = (card) => card.status || '';
+// insertDate may arrive as Unix seconds, milliseconds, or a date string.
+const toDate = (value) => {
+  if (typeof value === 'number' || /^\d+$/.test(value)) {
+    const num = Number(value);
+    return new Date(num < 1e12 ? num * 1000 : num);
+  }
+  return new Date(value);
+};
 const getCardDate = (card) => {
-  if (card.creationDate) return card.creationDate.slice(0, 10);
-  if (card.insertDate) return new Date(card.insertDate * 1000).toISOString().slice(0, 10);
-  return '';
+  const raw = card.creationDate || card.insertDate;
+  if (!raw) return '';
+  const date = toDate(raw);
+  return Number.isNaN(date.getTime()) ? '' : date.toISOString().slice(0, 10);
 };
 
 export const CardsList = () => {
