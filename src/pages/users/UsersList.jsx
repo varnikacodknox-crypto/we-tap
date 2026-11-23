@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { createPortal } from 'react-dom';
+import { useSearchParams } from 'react-router-dom';
 import EmptyState from '../../components/common/EmptyState';
 import Pagination, { PAGE_SIZE } from '../../components/common/Pagination';
 import {
@@ -20,10 +21,29 @@ import UserCardsView from './UserCardsView';
 import { formatDateTime } from '../../utils/date';
 import LoadingIndicator from '../../components/common/LoadingIndicator';
 
+const STATUS_FILTERS = ['Active', 'Inactive'];
+const PLAN_FILTERS = ['free', 'trial', 'weTapPro', 'subscribed'];
+
+// Filters live in the URL (?status=Active&plan=subscribed) so dashboard tiles can link to them.
+const readFilter = (params, key, allowed) => {
+  const value = params.get(key);
+  return allowed.includes(value) ? value : 'All';
+};
+
 export const UsersList = () => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('All');
-  const [subFilter, setSubFilter] = useState('All');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const statusFilter = readFilter(searchParams, 'status', STATUS_FILTERS);
+  const subFilter = readFilter(searchParams, 'plan', PLAN_FILTERS);
+  const setFilter = (key, value) =>
+    setSearchParams(
+      (params) => {
+        if (value === 'All') params.delete(key);
+        else params.set(key, value);
+        return params;
+      },
+      { replace: true }
+    );
   const [usersResult, setUsersResult] = useState(null);
   const [page, setPage] = useState(0);
   const [usersError, setUsersError] = useState(null);
@@ -77,7 +97,10 @@ export const UsersList = () => {
       statusFilter === 'All' || user.status.toLowerCase() === statusFilter.toLowerCase();
 
     const matchesSub =
-      subFilter === 'All' || user.planType.toLowerCase() === subFilter.toLowerCase();
+      subFilter === 'All' ||
+      (subFilter === 'subscribed'
+        ? Boolean(user.isPremiumUser)
+        : user.planType.toLowerCase() === subFilter.toLowerCase());
 
     return matchesSearch && matchesStatus && matchesSub;
   });
@@ -282,7 +305,7 @@ export const UsersList = () => {
 
           <select
             value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
+            onChange={(e) => setFilter('status', e.target.value)}
             className="wetap-dropdown-filter"
           >
             <option value="All">All Status</option>
@@ -292,13 +315,14 @@ export const UsersList = () => {
 
           <select
             value={subFilter}
-            onChange={(e) => setSubFilter(e.target.value)}
+            onChange={(e) => setFilter('plan', e.target.value)}
             className="wetap-dropdown-filter"
           >
             <option value="All">All</option>
-             <option value="free">Free</option>
+            <option value="free">Free</option>
             <option value="trial">Trial</option>
             <option value="weTapPro">Wetap Pro</option>
+            <option value="subscribed">Subscribed</option>
           </select>
         </div>
 

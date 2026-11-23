@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { BadgeCheck, CreditCard, MousePointerClick, UserCheck, Users, UserX } from 'lucide-react';
 import EmptyState from '../../components/common/EmptyState';
 import LoadingIndicator from '../../components/common/LoadingIndicator';
@@ -10,6 +11,7 @@ import { getDashboard, getDashboardChart, getDashboardUsers } from '../../api/da
 import { getUsers } from '../../api/users';
 import { getPhysicalCards } from '../../api/cards';
 import { useAuth } from '../../context/useAuth';
+import { formatDateOnly } from '../../utils/date';
 import '../../styles/v2.css';
 
 const CHART_POINTS = 10;
@@ -29,12 +31,6 @@ const findCount = (items, name) =>
 
 const formatCount = (value) => (Number.isFinite(value) ? value.toLocaleString() : '—');
 
-const formatDate = (item) => {
-  if (item.creationDate) return item.creationDate.slice(0, 10);
-  if (item.insertDate) return new Date(item.insertDate * 1000).toISOString().slice(0, 10);
-  return '';
-};
-
 // The card list shape isn't confirmed yet, so read the likely field names with fallbacks (same as CardsList).
 const getCardName = (card) => card.name || card.userName || card.userDetails?.name || '';
 const getCardEmail = (card) => card.email || card.userDetails?.email || '';
@@ -44,13 +40,22 @@ const StatusBadge = ({ status = '' }) => (
   <span className={`wtv2-badge ${status.toLowerCase() === 'active' ? 'green' : 'red'}`}>{status}</span>
 );
 
-const KpiCard = ({ icon: Icon, label, value, tone }) => (
-  <div className={`wtv2-kpi ${tone}`}>
-    <div className="wtv2-kpi-icon"><Icon size={18} /></div>
-    <p className="wtv2-kpi-label">{label}</p>
-    <p className="wtv2-kpi-value">{value}</p>
-  </div>
-);
+// A tile links to a filtered list page (`to`) or runs an in-page action (`onClick`).
+const KpiCard = ({ icon: Icon, label, value, tone, to, onClick }) => {
+  const className = `wtv2-kpi wtv2-kpi-action ${tone}`;
+  const content = (
+    <>
+      <span className="wtv2-kpi-icon"><Icon size={18} /></span>
+      <span className="wtv2-kpi-label">{label}</span>
+      <span className="wtv2-kpi-value">{value}</span>
+    </>
+  );
+  return to ? (
+    <Link to={to} className={className}>{content}</Link>
+  ) : (
+    <button type="button" onClick={onClick} className={className}>{content}</button>
+  );
+};
 
 export const OrgDashboard = () => {
   const { accessToken } = useAuth();
@@ -59,7 +64,8 @@ export const OrgDashboard = () => {
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
   const [searchTerm, setSearchTerm] = useState('');
-  const tab = TABS.find((item) => item.key === activeTab);
+  const tabsRef = useRef(null);
+  const tab =TABS.find((item) => item.key === activeTab);
   const type = period.toLowerCase();
 
   const stats = useApiData(`stats|${accessToken}`, (signal) => getDashboard(accessToken, signal));
@@ -117,6 +123,11 @@ export const OrgDashboard = () => {
     setSearchTerm('');
   };
 
+  const showTaps = () => {
+    switchTab('cards');
+    tabsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
   const changePageSize = (size) => {
     setPageSize(size);
     setPage(0);
@@ -130,16 +141,17 @@ export const OrgDashboard = () => {
 
       {/* KPI row */}
       <section className="wtv2-kpi-grid">
-        <KpiCard icon={Users} label="Total Users" value={formatCount(stats.data?.totalActiveUsers)} tone="pink" />
-        <KpiCard icon={UserCheck} label="Active Users" value={formatCount(activeUsers)} tone="green" />
-        <KpiCard icon={UserX} label="Non-Active Users" value={formatCount(inactiveUsers)} tone="rose" />
-        <KpiCard icon={BadgeCheck} label="Active Subscriptions" value={formatCount(subscribedUsers)} tone="violet" />
-        <KpiCard icon={CreditCard} label="Total Cards" value={formatCount(stats.data?.totalCards)} tone="amber" />
-        <KpiCard icon={MousePointerClick} label="Total Card Taps" value={formatCount(stats.data?.totalTaps)} tone="sky" />
+        <KpiCard icon={Users} label="Total Users" value={formatCount(stats.data?.totalActiveUsers)} tone="pink" to="/main/users/list" />
+        <KpiCard icon={UserCheck} label="Active Users" value={formatCount(activeUsers)} tone="green" to="/main/users/list?status=Active" />
+        <KpiCard icon={UserX} label="Non-Active Users" value={formatCount(inactiveUsers)} tone="rose" to="/main/users/list?status=Inactive" />
+        <KpiCard icon={BadgeCheck} label="Active Subscriptions" value={formatCount(subscribedUsers)} tone="violet" to="/main/users/list?plan=subscribed" />
+        <KpiCard icon={CreditCard} label="Total Cards" value={formatCount(stats.data?.totalCards)} tone="amber" to="/main/cards/list" />
+        {/* There is no taps list page, so this opens the Cards tab, whose chart shows taps. */}
+        <KpiCard icon={MousePointerClick} label="Total Card Taps" value={formatCount(stats.data?.totalTaps)} tone="sky" onClick={showTaps} />
       </section>
 
       {/* Tabs */}
-      <section>
+      <section ref={tabsRef}>
         <div className="wtv2-tabs" role="tablist">
           {TABS.map((item) => (
             <button
@@ -234,7 +246,7 @@ export const OrgDashboard = () => {
                         <td className="strong wtv2-stack-title">{user.name}</td>
                         <td data-label="Username">{user.userName}</td>
                         <td data-label="Email">{user.email}</td>
-                        <td className="wtv2-stack-date">{formatDate(user)}</td>
+                        <td className="wtv2-stack-date">{formatDateOnly(user)}</td>
                         <td data-label="Status" className="right wtv2-stack-inline"><StatusBadge status={user.status} /></td>
                       </tr>
                     ))}
@@ -244,7 +256,7 @@ export const OrgDashboard = () => {
                         <td className="strong wtv2-stack-title">{user.name}</td>
                         <td data-label="Email">{user.email}</td>
                         <td data-label="Plan">{user.planType}</td>
-                        <td className="wtv2-stack-date">{formatDate(user)}</td>
+                        <td className="wtv2-stack-date">{formatDateOnly(user)}</td>
                         <td data-label="Subscription" className="right wtv2-stack-inline">
                           <span className={`wtv2-badge ${user.isPremiumUser ? 'green' : 'gray'}`}>
                             {user.isPremiumUser ? 'Subscription' : 'Non-Subscription'}
@@ -258,7 +270,7 @@ export const OrgDashboard = () => {
                         <td data-label="Card ID" className="mono strong">{getCardId(card)}</td>
                         <td className="strong wtv2-stack-title">{getCardName(card)}</td>
                         <td data-label="Email">{getCardEmail(card)}</td>
-                        <td className="wtv2-stack-date">{formatDate(card)}</td>
+                        <td className="wtv2-stack-date">{formatDateOnly(card)}</td>
                         <td data-label="Status" className="right wtv2-stack-inline"><StatusBadge status={card.status} /></td>
                       </tr>
                     ))}

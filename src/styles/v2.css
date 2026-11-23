@@ -133,6 +133,28 @@
   border-radius: 6px;
 }
 
+/* Tiles are links/buttons: reset native styles and add a hover/focus state. */
+.wtv2-kpi-action {
+  width: 100%;
+  border: 1px solid transparent;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+  transition: box-shadow 0.15s ease, transform 0.15s ease, border-color 0.15s ease;
+}
+
+.wtv2-kpi-action:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.08);
+}
+
+.wtv2-kpi-action:focus-visible {
+  outline: none;
+  border-color: var(--wtv2-purple);
+}
+
 .wtv2-kpi-icon {
   width: 40px;
   height: 40px;

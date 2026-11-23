@@ -607,6 +607,34 @@ select {
   background: linear-gradient(90deg, #64a0f4 0%, #f672a9 100%);
 }
 
+/* Tiles are links/buttons: reset native styles and add a hover/focus state. */
+.wetap-stat-card--action {
+  width: 100%;
+  border: 1px solid transparent;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+  transition: box-shadow 0.15s ease, transform 0.15s ease, border-color 0.15s ease;
+}
+
+.wetap-stat-card--action:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.08);
+}
+
+.wetap-stat-card--action:focus-visible {
+  outline: none;
+  border-color: #f672a9;
+}
+
+.wetap-stat-content,
+.wetap-stat-title,
+.wetap-stat-value {
+  display: block;
+}
+
 .wetap-stat-icon {
   width: 28px;
   height: 28px;

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import StatCard from '../../components/common/StatCard';
 import LoadingIndicator from '../../components/common/LoadingIndicator';
 import BreakdownPieChart from '../../components/common/BreakdownPieChart';
@@ -26,6 +26,7 @@ export const Dashboard = () => {
   const [breakdownResult, setBreakdownResult] = useState(null);
   const { accessToken } = useAuth();
   const showToast = useToast();
+  const chartRef = useRef(null);
   const chartQueryKey = JSON.stringify([accessToken, activeTab, period, limit]);
   const stats = statsResult?.token === accessToken ? statsResult.data : null;
   const statsErrorMessage =
@@ -107,6 +108,11 @@ export const Dashboard = () => {
     return () => controller.abort();
   }, [accessToken, activeTab, chartQueryKey, limit, period, showToast]);
 
+  const showTaps = () => {
+    setActiveTab('Taps');
+    chartRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
   return (
     <div className="wetap-dashboard-page">
       {/* Stat Cards Row */}
@@ -116,22 +122,26 @@ export const Dashboard = () => {
           value={isLoadingStats ? '—' : stats?.totalActiveUsers ?? '—'}
           icon={userIcon}
           colorVariant="pink"
+          to="/main/users/list"
         />
         <StatCard
           title="Total Cards"
           value={isLoadingStats ? '—' : stats?.totalCards ?? '—'}
           icon={cardIcon}
           colorVariant="blue"
+          to="/main/cards/list"
         />
+        {/* There is no taps list page, so this switches the chart below to Taps. */}
         <StatCard
           title="Total Taps"
           value={isLoadingStats ? '—' : stats?.totalTaps ?? '—'}
           icon={tapIcon}
           colorVariant="peach"
+          onClick={showTaps}
         />
       </div>
       {/* Analytics Chart Container */}
-      <div className="wetap-chart-card">
+      <div className="wetap-chart-card" ref={chartRef}>
         <div className="wetap-chart-header">
           {/* Tabs */}
           <div className="wetap-tabs-group">

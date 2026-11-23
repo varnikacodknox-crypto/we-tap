@@ -5,26 +5,13 @@ import LoadingIndicator from '../../components/common/LoadingIndicator';
 import { getPhysicalCards } from '../../api/cards';
 import { useAuth } from '../../context/useAuth';
 import { useToast } from '../../context/useToast';
+import { formatDateOnly } from '../../utils/date';
 
 // The card list shape isn't confirmed yet, so read the likely field names with fallbacks.
 const getCardName = (card) => card.name || card.userName || card.userDetails?.name || '';
 const getCardEmail = (card) => card.email || card.userDetails?.email || '';
 const getCardId = (card) => card.cardId || card.cardNumber || card._id || '';
 const getCardStatus = (card) => card.status || '';
-// insertDate may arrive as Unix seconds, milliseconds, or a date string.
-const toDate = (value) => {
-  if (typeof value === 'number' || /^\d+$/.test(value)) {
-    const num = Number(value);
-    return new Date(num < 1e12 ? num * 1000 : num);
-  }
-  return new Date(value);
-};
-const getCardDate = (card) => {
-  const raw = card.creationDate || card.insertDate;
-  if (!raw) return '';
-  const date = toDate(raw);
-  return Number.isNaN(date.getTime()) ? '' : date.toISOString().slice(0, 10);
-};
 
 export const CardsList = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -121,7 +108,7 @@ export const CardsList = () => {
                       {getCardStatus(card)}
                     </span>
                   </td>
-                  <td className="wetap-stacked-date">{getCardDate(card)}</td>
+                  <td className="wetap-stacked-date">{formatDateOnly(card)}</td>
                 </tr>
               ))
             ) : null}
